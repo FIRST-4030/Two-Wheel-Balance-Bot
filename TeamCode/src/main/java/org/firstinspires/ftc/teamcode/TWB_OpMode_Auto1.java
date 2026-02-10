@@ -1,0 +1,130 @@
+/* This Iterative Autonomous OpMode is for a Two Wheel Balancing Robot with Arm
+ */
+
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+/**
+ * This Iterative Autonomous OpMode is for a Two Wheel Balancing Robot with Arm.
+ * Moves forward, drops object, moves back.
+ * Used mostly for developing motion profiles.
+ */
+@Autonomous(name="TWB Auto Move FWD and Back")
+//@Disabled
+public class TWB_OpMode_Auto1 extends OpMode {
+    // Declare OpMode members.
+    private TwoWheelBalanceBot twb;
+    final private TWBMoves myTWBmoves = new TWBMoves(); // used for auto
+    final private ElapsedTime moveTimer = new ElapsedTime();
+    double currentPos;
+    double DIST = 1000; // mm
+
+    double DIST_TIME = 2.8; // sec
+
+    double SETTLE_TIME = 1.0; // sec
+
+    enum State {
+        START,
+        MOVE1,
+        MOVE2,
+        DONE
+    }
+    State state = State.START;
+    /*
+     * Code to run ONCE when the driver hits INIT
+     */
+    @Override
+    public void init() {
+        twb = new TwoWheelBalanceBot(hardwareMap,this); // Create twb object
+
+        twb.LOG = true;
+
+        twb.ClawIsClosed = true; // close the claw
+
+        twb.init();
+    }
+
+    /*
+     * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
+     */
+    @Override
+    public void init_loop() {
+        telemetry.addData("AUTO", "INIT LOOP");
+
+        twb.auto_right_loop(); // gets the robot into a position to self right
+
+        twb.init_loop(); // provides user a chance to change the K terms
+
+        telemetry.update();
+    }
+
+    /*
+     * Code to run ONCE when the driver hits START
+     */
+    @Override
+    public void start() {
+        state = State.START;
+        resetRuntime();
+        moveTimer.reset();
+
+        twb.start(); // gets the latest state of the robot before running
+        twb.theArm.setArmAngle(-90);  // move the arm
+    }
+
+    /*
+     * Code to run REPEATEDLY after the driver hits START but before they hit STOP
+     */
+    @Override
+    public void loop() {
+        double[] newTargets;
+
+        switch (state) {
+            case START: // stabilize time
+                if (getRuntime() >= SETTLE_TIME) {
+                    state = State.MOVE1;
+                    moveTimer.reset();
+                    currentPos = 0; // force current pos to zero, for offset in next state
+                }
+                break;
+            case MOVE1:
+                if (getRuntime() <= (SETTLE_TIME +DIST_TIME) ) {
+                    newTargets = myTWBmoves.lineMove(DIST,DIST_TIME, moveTimer.seconds(),currentPos);
+                    twb.posTarget = newTargets[0]; // ADD METHOD THAT INCLUDES VELOCITY TARGET BASED ON POSTARGET
+                    twb.autoPitchTarget = newTargets[1];
+                    //twb.veloTarget = newTargets[2];
+                } else {
+                    state = State.MOVE2;
+                    moveTimer.reset();
+                    twb.ClawIsClosed = false; // open the claw
+                    currentPos = DIST; // for the next state
+                }
+                break;
+            case MOVE2:
+                 if (getRuntime() <= (SETTLE_TIME +DIST_TIME+ SETTLE_TIME)) {
+                     // Sit for a bit to let robot stabilize after opening claw
+                     moveTimer.reset();
+                 } else if (getRuntime() <= (2*SETTLE_TIME + 2*DIST_TIME)) {
+                         myTWBmoves.reverseDir = true;
+                         newTargets = myTWBmoves.lineMove(DIST,DIST_TIME, moveTimer.seconds(),currentPos);
+                         twb.posTarget = newTargets[0];
+                         twb.autoPitchTarget = newTargets[1];
+                         //twb.veloTarget = newTargets[2];
+                 } else {
+                         state = State.DONE;
+                         moveTimer.reset();
+                 }
+                break;
+            case DONE:
+                if (getRuntime() > (2*SETTLE_TIME + 2*DIST_TIME + 1) ) requestOpModeStop();
+                break;
+        }
+
+        twb.loop();  // MAIN CONTROL SYSTEM
+
+        telemetry.addData("State",state);
+        telemetry.update();
+    }
+}

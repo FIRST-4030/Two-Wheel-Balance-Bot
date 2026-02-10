@@ -1,0 +1,172 @@
+package org.firstinspires.ftc.teamcode;
+
+/**
+ * Two Wheel Robot Odometry class.
+ * Keeps track of a two-wheeled balancing robot's position using wheel encoders.
+ * Running Average is used to smooth position and velocity data.
+ * Robot pitch may move the encoders but not the change robot position, and
+ * pitch may move the robot without changing the encoders.
+ */
+public class TWBOdometry {
+    // Robot parameters
+    private final double wheelBase; // distance between the wheels
+    private final double wheelCircumference;  // wheel circumference
+    
+    private double lastPitch;
+
+    // Position and orientation
+    private double x = 0;
+    private double y = 0;
+    private double s = 0;  // total distance regardless of direction
+    private double theta = 0; // orientation angle in radians (-pi to pi)
+    private double noNormalTheta = 0; // continuous orientation angle
+
+    private double linearVelocity = 0.0;
+    final private RunningAverage veloAvg;   // Running average of linear velocity
+    
+    final private RunningAverage leftDistAvg; // Running average of left encoder
+    final private RunningAverage rightDistAvg; // Running average of left encoder
+
+    /**
+     * Constructor,  provide wheel base and wheel dia in mm, initialPitch in degrees
+      */
+    public TWBOdometry(double wheelBase, double wheelDia, double initialPitch) {
+        this.wheelBase = wheelBase;
+        this.wheelCircumference = wheelDia*Math.PI; // convert diameter to circumference
+        this.lastPitch = initialPitch; // robots initial pitch, probably not zero
+        this.veloAvg = new RunningAverage(7);
+        this.leftDistAvg = new RunningAverage(3);
+        this.rightDistAvg = new RunningAverage(3);
+
+        // initialize the running averages with some zeros to smooth out the startup
+        veloAvg.addNumber(0);
+        veloAvg.addNumber(0);
+        veloAvg.addNumber(0);
+        veloAvg.addNumber(0);
+
+        leftDistAvg.addNumber(0);
+        leftDistAvg.addNumber(0);
+        leftDistAvg.addNumber(0);
+
+        rightDistAvg.addNumber(0);
+        rightDistAvg.addNumber(0);
+        rightDistAvg.addNumber(0);
+
+    }
+
+    /**
+     * Updates the position and orientation (yaw) of the robot based on new encoder values.
+     *
+     * @param leftDistance  distance traveled by the left wheel (mm).
+     * @param rightDistance distance traveled by the right wheel (mm).
+     * @param pitch   The pitch of the body connected to the wheels (in degrees), zero is up.
+     * @param timeChange   The loop delta time (in seconds).
+     */
+    public void update(double leftDistance, double rightDistance, double pitch, double timeChange) {
+        
+        double newLeftDistance, newRightDistance;
+        double deltaLeft, deltaRight;
+        double lastLeftDistance;
+        double lastRightDistance;
+        double deltaDistance;
+        double deltaTheta;
+
+        // Calculate the delta pitch (degrees) of the chassis, since the last update
+        // This is subtracted from the travel because it moves the encoders
+        double deltaPitch = pitch - lastPitch;
+        lastPitch = pitch;
+        double pitchEqDist = (deltaPitch/360.0)*wheelCircumference; // Pitch Equivalent Distance
+
+        // get the prior running average distance
+        lastLeftDistance = leftDistAvg.getAverage();
+        lastRightDistance = rightDistAvg.getAverage();
+
+        // add the new distances to the running averages
+        leftDistAvg.addNumber(leftDistance);
+        rightDistAvg.addNumber(rightDistance);
+
+        // get the new running average distance
+        newLeftDistance = leftDistAvg.getAverage();
+        newRightDistance = rightDistAvg.getAverage();
+        
+        // take the difference and add the pitch adjustment
+        deltaLeft  = (newLeftDistance -lastLeftDistance) - pitchEqDist;
+        deltaRight = (newRightDistance-lastRightDistance) - pitchEqDist;
+
+        // Calculate the change in orientation
+        deltaTheta = (deltaLeft- deltaRight) / wheelBase;
+        //deltaTheta = Math.atan2((deltaLeft- deltaRight),wheelBase); // more accurate, but not much
+
+        // Calculate the average distance traveled
+        deltaDistance = (deltaLeft + deltaRight) / 2;
+        s += deltaDistance;
+        linearVelocity = deltaDistance/timeChange;
+        veloAvg.addNumber(linearVelocity); // add to the running average
+
+        // Update the position and orientation
+        if (deltaTheta == 0) {
+            // Robot is moving straight
+            x += deltaDistance * Math.cos(theta);
+            y += deltaDistance * Math.sin(theta);
+        } else {
+            // Robot is rotating around a point
+            double radius = deltaDistance / deltaTheta;
+            //double radius = (deltaDistance/2) / Math.tan(deltaTheta); // more accurate, but not much
+            double centerX = x - radius * Math.sin(theta);
+            double centerY = y + radius * Math.cos(theta);
+            theta += deltaTheta;
+            noNormalTheta += deltaTheta;
+            x = centerX + radius * Math.sin(theta);
+            y = centerY - radius * Math.cos(theta);
+        }
+
+        // Normalize theta to the range [-pi, pi]
+        theta = normalizeAngle(theta);
+    }
+
+    /**
+     * Normalizes an angle to the range [-pi, pi].
+     *
+     * @param angle The angle to normalize (in radians).
+     * @return The normalized angle (in radians).
+     */
+    private double normalizeAngle(double angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle < -Math.PI) angle += 2 * Math.PI;
+        return angle;
+    }
+
+    // Getters for position and orientation
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public double getS() {
+        return s;
+    }
+
+    public double getTheta() {
+        return -noNormalTheta;
+    }
+
+    /**
+     * return instant linear velocity
+     * @return linearVelocity
+     */
+    public double getLinearVelocity() {
+        return linearVelocity;
+    }
+
+    /**
+     * return running average linear velocity
+     * @return veloAvg
+     */
+    public double getAvgLinearVelocity() {
+        return veloAvg.getAverage();
+    }
+}
+
