@@ -279,7 +279,7 @@ public class TwoWheelBalanceBot {
     /**
      * TWB start method. Called once on Start press. Resets encoders, timers, PIDs
       */
-    public void start() {
+    public void start(double armAngle) {
         // reset the encoders because the robot may have moved during auto righting
         leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -306,7 +306,7 @@ public class TwoWheelBalanceBot {
         currentVoltage = battery.getVoltage();
         currentTime = runtime.seconds(); // initialize current time for delta time values
 
-        theArm.setArmAngle(0.0);
+        theArm.setArmAngle(armAngle);
     }
 
     /**
@@ -448,19 +448,22 @@ public class TwoWheelBalanceBot {
             datalog.writeLine();
         }
         if (TELEMETRY) {
+            theOpmode.telemetry.addData("yaw Target (deg)", "%.1f ", yawTarget);
+            //theOpmode.telemetry.addData("s position Odometry (mm)", "%.1f ", sOdom);
+
             theOpmode.telemetry.addData("s position Target (mm)", "%.1f ", posTarget);
             theOpmode.telemetry.addData("s position Odometry (mm)", "%.1f ", sOdom);
 
-            theOpmode.telemetry.addData("Velocity Target (mm/sec)", "%.1f ", veloTarget);
-            theOpmode.telemetry.addData("Velocity Current (mm/sec)", "%.1f ", linearVelocity);
-
-            theOpmode.telemetry.addData("Arm Target Angle", theArm.getTargetAngle());
-            theOpmode.telemetry.addData("Arm Current Angle", theArm.getAngle());
-
-            theOpmode.telemetry.addData("Pitch Target (degrees)", "%.1f ", pitchTarget);
-            theOpmode.telemetry.addData("Pitch IMU (degrees)", "%.1f ", pitch);
-
-            theOpmode.telemetry.addData("Claw Servo", clawServo.getPosition());
+//            theOpmode.telemetry.addData("Velocity Target (mm/sec)", "%.1f ", veloTarget);
+//            theOpmode.telemetry.addData("Velocity Current (mm/sec)", "%.1f ", linearVelocity);
+//
+//            theOpmode.telemetry.addData("Arm Target Angle", theArm.getTargetAngle());
+//            theOpmode.telemetry.addData("Arm Current Angle", theArm.getAngle());
+//
+//            theOpmode.telemetry.addData("Pitch Target (degrees)", "%.1f ", pitchTarget);
+//            theOpmode.telemetry.addData("Pitch IMU (degrees)", "%.1f ", pitch);
+//
+//            theOpmode.telemetry.addData("Claw Servo", clawServo.getPosition());
         }
 
         // kill the robot if it pitches over or runs fast
@@ -648,29 +651,6 @@ public class TwoWheelBalanceBot {
     }
 
     /**
-     * TWB method to provide user control of moving the robot with joystick, controlling velocity.
-     *   DON'T USE.  IT DOESN'T WORK VERY WELL
-     * @param MaxVelo Maximum velocity (positive or negative)
-     */
-    public void velo_teleop(double MaxVelo) {
-        // joystick sets forward and back velocity
-        double stickVeloTarget = -theOpmode.gamepad1.left_stick_y * MaxVelo;
-        //oldVeloTarget = veloTarget;
-        double deltaVelo = stickVeloTarget - veloTarget;
-        if (Math.abs(deltaVelo) >= 5) deltaVelo = Math.signum(deltaVelo)*5.1;
-        else deltaVelo = 0;
-
-        veloTarget += deltaVelo;
-        // check if Max Velocity will be exceeded
-        if (veloTarget > MaxVelo) {
-            veloTarget = MaxVelo;
-        } else  if (veloTarget < -MaxVelo) {
-            veloTarget = -MaxVelo;
-        }
-
-        posTarget += veloTarget*deltaTime;
-    }
-    /**
      * TWB method to provide user control of moving the robot with joystick, controlling pitch.
      */
     public void pitch_teleop() {
@@ -681,6 +661,33 @@ public class TwoWheelBalanceBot {
         // move the position target as well
         posTarget -= theOpmode.gamepad1.left_stick_y * 7.0;
     }
+
+    /**
+     * TWB method to provide user control of moving the robot with joystick in x and y direction.
+     *   FIELD CENTRIC
+     * @param forward value from -1 to 1 that is the forward or backward motion
+     * @param right  value from -1 to 1 that is the right or left motion
+     */
+    public void xy_teleop(double forward, double right) {
+
+        double speed = Math.sqrt(forward*forward + right*right);
+
+        // only do something if there is an input
+        if (speed > 0.1) {
+            double angle = Math.atan2(right, forward);
+            // The java.lang.Math.atan2() method returns the angle (theta) in radians between the positive x-axis and a point (x, y).
+            // It is a static method that takes two double arguments: y (the y-coordinate) and x (the x-coordinate).
+            yawTarget = angle;  // The TWB yaw PID controller does the rest
+
+            // add some pitch to get moving
+            autoPitchTarget = speed * 5.0; // was 8 at open house Jan 2026
+
+            // move the position target as well
+            posTarget += speed * 7.0;
+        }
+
+    }
+
      /*
     public void slow_ramp() {
 

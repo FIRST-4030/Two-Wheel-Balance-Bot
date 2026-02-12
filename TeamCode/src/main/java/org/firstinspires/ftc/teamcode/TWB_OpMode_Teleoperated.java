@@ -49,7 +49,7 @@ public class TWB_OpMode_Teleoperated extends OpMode
     @Override
     public void start() {
 
-        twb.start(); // gets the latest state of the robot before running
+        twb.start(-90.0); // gets the latest state of the robot before running
     }
 
     /**
@@ -59,9 +59,10 @@ public class TWB_OpMode_Teleoperated extends OpMode
     public void loop() {
 
         // get teleoperated inputs
-        twb.pitch_teleop();
+        //twb.pitch_teleop();
 
-        //twb.velo_teleop(600); // set robot velocity and position targets
+        // XY field centric method of driving
+        twb.xy_teleop(-gamepad1.left_stick_y, -gamepad1.left_stick_x);
 
         twb.turn_teleop(0.02);
 

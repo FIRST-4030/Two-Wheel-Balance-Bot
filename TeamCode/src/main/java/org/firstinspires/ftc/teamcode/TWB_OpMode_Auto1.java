@@ -70,8 +70,8 @@ public class TWB_OpMode_Auto1 extends OpMode {
         resetRuntime();
         moveTimer.reset();
 
-        twb.start(); // gets the latest state of the robot before running
-        twb.theArm.setArmAngle(-90);  // move the arm
+        twb.start(-90); // gets the latest state of the robot before running
+        //twb.theArm.setArmAngle(-90);  // move the arm
     }
 
     /*

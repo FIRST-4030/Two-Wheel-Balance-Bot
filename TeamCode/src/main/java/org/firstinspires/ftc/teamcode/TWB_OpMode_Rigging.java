@@ -58,7 +58,7 @@ public class TWB_OpMode_Rigging extends OpMode
     @Override
     public void start() {
 
-        twb.start(); // gets the latest state of the robot before running
+        twb.start(-90.0); // gets the latest state of the robot before running
     }
 
     /*

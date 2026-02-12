@@ -3,6 +3,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -14,8 +15,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Telemetry shows the values with the lowest oscillations - write these down at the end!
  * Also, one can review the datalog and see when the robot is well balanced.
  */
+@Disabled
 @TeleOp(name="TWB Design of Experiments")
-//@Disabled
 public class TWB_OpMode_DOE extends OpMode {
     // Declare OpMode members.
     private TwoWheelBalanceBot twb;
@@ -107,9 +108,9 @@ public class TWB_OpMode_DOE extends OpMode {
     public void start() {
         resetRuntime();
 
-        twb.start(); // gets the latest state of the robot before running
+        twb.start(armAngle); // gets the latest state of the robot before running
         twb.ClawIsClosed = true; // close the claw
-        twb.theArm.setArmAngle(armAngle);  // move the arm
+        //twb.theArm.setArmAngle(armAngle);  // move the arm
     }
 
     /**
