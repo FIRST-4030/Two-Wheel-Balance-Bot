@@ -73,7 +73,7 @@ public class TwoWheelBalanceBot {
     double pitchError = 0;
 
     public double yawTarget = 0.0; // from the user joystick in teleop or from auto routines
-    double yaw = 0;
+    public double yaw = 0;
     double priorYaw = 0;
     double rawYaw, rawPriorYaw = 0;
     double yawRATE; // not used other than for datalog
@@ -448,22 +448,20 @@ public class TwoWheelBalanceBot {
             datalog.writeLine();
         }
         if (TELEMETRY) {
-            theOpmode.telemetry.addData("yaw Target (deg)", "%.1f ", yawTarget);
-            //theOpmode.telemetry.addData("s position Odometry (mm)", "%.1f ", sOdom);
 
             theOpmode.telemetry.addData("s position Target (mm)", "%.1f ", posTarget);
             theOpmode.telemetry.addData("s position Odometry (mm)", "%.1f ", sOdom);
 
-//            theOpmode.telemetry.addData("Velocity Target (mm/sec)", "%.1f ", veloTarget);
-//            theOpmode.telemetry.addData("Velocity Current (mm/sec)", "%.1f ", linearVelocity);
-//
-//            theOpmode.telemetry.addData("Arm Target Angle", theArm.getTargetAngle());
-//            theOpmode.telemetry.addData("Arm Current Angle", theArm.getAngle());
-//
-//            theOpmode.telemetry.addData("Pitch Target (degrees)", "%.1f ", pitchTarget);
-//            theOpmode.telemetry.addData("Pitch IMU (degrees)", "%.1f ", pitch);
-//
-//            theOpmode.telemetry.addData("Claw Servo", clawServo.getPosition());
+            theOpmode.telemetry.addData("Velocity Target (mm/sec)", "%.1f ", veloTarget);
+            theOpmode.telemetry.addData("Velocity Current (mm/sec)", "%.1f ", linearVelocity);
+
+            theOpmode.telemetry.addData("Arm Target Angle", theArm.getTargetAngle());
+            theOpmode.telemetry.addData("Arm Current Angle", theArm.getAngle());
+
+            theOpmode.telemetry.addData("Pitch Target (degrees)", "%.1f ", pitchTarget);
+            theOpmode.telemetry.addData("Pitch IMU (degrees)", "%.1f ", pitch);
+
+            theOpmode.telemetry.addData("Claw Servo", clawServo.getPosition());
         }
 
         // kill the robot if it pitches over or runs fast
@@ -652,14 +650,15 @@ public class TwoWheelBalanceBot {
 
     /**
      * TWB method to provide user control of moving the robot with joystick, controlling pitch.
+     * @param forward value from -1 to 1 that is the forward or backward motion
      */
-    public void pitch_teleop() {
+    public void translateDrive(double forward) {
 
         // add some pitch to get it moving
-        autoPitchTarget = theOpmode.gamepad1.left_stick_y * 6.0; // was 8 at open house Jan 2026
+        autoPitchTarget = forward * 6.0; // was 8 at open house Jan 2026
 
         // move the position target as well
-        posTarget -= theOpmode.gamepad1.left_stick_y * 7.0;
+        posTarget -= forward * 7.0;
     }
 
     /**
@@ -674,18 +673,34 @@ public class TwoWheelBalanceBot {
 
         // only do something if there is an input
         if (speed > 0.1) {
-            double angle = Math.atan2(right, forward);
             // The java.lang.Math.atan2() method returns the angle (theta) in radians between the positive x-axis and a point (x, y).
             // It is a static method that takes two double arguments: y (the y-coordinate) and x (the x-coordinate).
-            yawTarget = angle;  // The TWB yaw PID controller does the rest
+            double angle = Math.atan2(right, forward);
+
+            double shortestAngleMove = shortestAngleDifference(angle, yawTarget);
+
+            yawTarget += shortestAngleMove;  // The TWB yaw PID controller does the rest
 
             // add some pitch to get moving
-            autoPitchTarget = speed * 5.0; // was 8 at open house Jan 2026
+            autoPitchTarget = speed * 6.0; // was 8 at open house Jan 2026
 
             // move the position target as well
             posTarget += speed * 7.0;
         }
 
+    }
+    /**
+     * Calculates the shortest distance to turn from angle A to angle B.
+     * @param a Start angle in degrees
+     * @param b Target angle in degrees
+     * @return Shortest angle difference (-180 to 180)
+     */
+    public static double shortestAngleDifference(double a, double b) {
+        double difference = b - a;
+        // Normalize to (-180, 180]
+        while (difference <= -180) difference += 360;
+        while (difference > 180) difference -= 360;
+        return difference;
     }
 
      /*

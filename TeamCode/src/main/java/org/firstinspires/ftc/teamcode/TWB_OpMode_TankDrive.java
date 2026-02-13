@@ -9,9 +9,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 /**
  * Iterative Tele OpMode is for a Two Wheel Balancing Robot with Arm.
  */
-@TeleOp(name="TWB Teleoperated")
+@TeleOp(name="TWB Tele Tank Drive")
 //@Disabled
-public class TWB_OpMode_Teleoperated extends OpMode
+public class TWB_OpMode_TankDrive extends OpMode
 {
     // Declare OpMode members.
     private TwoWheelBalanceBot twb;
@@ -59,10 +59,7 @@ public class TWB_OpMode_Teleoperated extends OpMode
     public void loop() {
 
         // get teleoperated inputs
-        //twb.pitch_teleop();
-
-        // XY field centric method of driving
-        twb.xy_teleop(-gamepad1.left_stick_y, -gamepad1.left_stick_x);
+        twb.translateDrive(gamepad1.left_stick_y);
 
         twb.turn_teleop(0.02);
 
