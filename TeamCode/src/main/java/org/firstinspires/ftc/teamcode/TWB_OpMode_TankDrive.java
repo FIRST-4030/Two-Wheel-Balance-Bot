@@ -16,12 +16,16 @@ public class TWB_OpMode_TankDrive extends OpMode
     // Declare OpMode members.
     private TwoWheelBalanceBot twb;
 
+    private RunningAverage joystickS; // to smooth aggressive joystick inputs
+
     /**
      * TWB Teleop Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
         twb = new TwoWheelBalanceBot(hardwareMap,this); // Create twb object
+
+        joystickS = new RunningAverage(5); // initialize size of running average
 
         twb.LOG = false;
 
@@ -58,8 +62,11 @@ public class TWB_OpMode_TankDrive extends OpMode
     @Override
     public void loop() {
 
+        // get running average of the joystick to smooth aggressive inputs
+        joystickS.addNumber(gamepad1.left_stick_y);
+
         // get teleoperated inputs
-        twb.translateDrive(gamepad1.left_stick_y);
+        twb.translateDrive(joystickS.getAverage());
 
         twb.turn_teleop(0.02);
 

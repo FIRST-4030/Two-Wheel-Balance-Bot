@@ -662,44 +662,16 @@ public class TwoWheelBalanceBot {
     }
 
     /**
-     * TWB method to provide user control of moving the robot with joystick in x and y direction.
-     *   FIELD CENTRIC
-     * @param forward value from -1 to 1 that is the forward or backward motion
-     * @param right  value from -1 to 1 that is the right or left motion
-     */
-    public void xy_teleop(double forward, double right) {
-
-        double speed = Math.sqrt(forward*forward + right*right);
-
-        // only do something if there is an input
-        if (speed > 0.1) {
-            // The java.lang.Math.atan2() method returns the angle (theta) in radians between the positive x-axis and a point (x, y).
-            // It is a static method that takes two double arguments: y (the y-coordinate) and x (the x-coordinate).
-            double angle = Math.atan2(right, forward);
-
-            double shortestAngleMove = shortestAngleDifference(angle, yawTarget);
-
-            yawTarget += shortestAngleMove;  // The TWB yaw PID controller does the rest
-
-            // add some pitch to get moving
-            autoPitchTarget = speed * 6.0; // was 8 at open house Jan 2026
-
-            // move the position target as well
-            posTarget += speed * 7.0;
-        }
-
-    }
-    /**
      * Calculates the shortest distance to turn from angle A to angle B.
-     * @param a Start angle in degrees
-     * @param b Target angle in degrees
-     * @return Shortest angle difference (-180 to 180)
+     * @param a Start angle in radians
+     * @param b Target angle in radians
+     * @return Shortest angle difference (-PI to PI)
      */
     public static double shortestAngleDifference(double a, double b) {
-        double difference = b - a;
-        // Normalize to (-180, 180]
-        while (difference <= -180) difference += 360;
-        while (difference > 180) difference -= 360;
+        double difference = a - b;
+        // Normalize to (-PI, PI]
+        while (difference <= -Math.PI) difference += 2.0*Math.PI;
+        while (difference > Math.PI) difference -= 2.0*Math.PI;
         return difference;
     }
 

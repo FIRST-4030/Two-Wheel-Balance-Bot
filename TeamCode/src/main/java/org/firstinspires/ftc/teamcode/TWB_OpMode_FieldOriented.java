@@ -15,6 +15,8 @@ public class TWB_OpMode_FieldOriented extends OpMode
 {
     // Declare OpMode members.
     private TwoWheelBalanceBot twb;
+    private RunningAverage angle; // to smooth angle
+    private RunningAverage speed; // to smooth aggressive joystick inputs
 
     /**
      * TWB Teleop Code to run ONCE when the driver hits INIT
@@ -22,6 +24,10 @@ public class TWB_OpMode_FieldOriented extends OpMode
     @Override
     public void init() {
         twb = new TwoWheelBalanceBot(hardwareMap,this); // Create twb object
+
+        angle = new RunningAverage(10); // initialize size of running average
+
+        speed = new RunningAverage(5); // initialize size of running average
 
         twb.LOG = false;
         twb.TELEMETRY = false;
@@ -59,8 +65,26 @@ public class TWB_OpMode_FieldOriented extends OpMode
     @Override
     public void loop() {
 
-        // XY field centric method of driving
-        twb.xy_teleop(-gamepad1.left_stick_y, -gamepad1.left_stick_x);
+        double forward = -gamepad1.left_stick_y;
+        double right = -gamepad1.left_stick_x;
+        double speed1 = Math.sqrt(forward*forward + right*right);
+        speed.addNumber(speed1);
+
+        // The java.lang.Math.atan2() method returns the angle (theta) in radians between the positive x-axis and a point (x, y).
+        // It is a static method that takes two double arguments: y (the y-coordinate) and x (the x-coordinate).
+        // It is an unknown angle if both arguments are zero
+
+        if (speed1 <= 0.02) {
+            angle.addNumber(twb.yawTarget);
+        }  else  {
+            angle.addNumber(Math.atan2(right, forward));
+
+            double shortestAngleMove = twb.shortestAngleDifference(angle.getAverage(), twb.yawTarget); // radians
+            telemetry.addData("shortest turn (deg)", "%.1f ", shortestAngleMove*180/Math.PI);
+            twb.yawTarget += shortestAngleMove;  // The TWB yaw PID controller does the rest
+        }
+
+        twb.translateDrive(-speed.getAverage());
 
         twb.turn_teleop(0.02);
 
@@ -71,6 +95,7 @@ public class TWB_OpMode_FieldOriented extends OpMode
         twb.loop();  // call the MAIN CONTROL SYSTEM
 
         telemetry.addData("yaw Target (deg)", "%.1f ", twb.yawTarget*180/Math.PI);
+
         telemetry.addData("yaw Current (deg)", "%.1f ", twb.yaw*180/Math.PI);
 
         telemetry.addData("s position Target (mm)", "%.1f ", twb.posTarget);
