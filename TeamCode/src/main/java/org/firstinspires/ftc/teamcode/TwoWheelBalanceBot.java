@@ -13,29 +13,19 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
-import java.util.List;
 
 /**
  * Two Wheel Balancing Robot Class, with Arm.
- * This class has about 50 members (variables)!
+ * This class has Many members (variables)!
  */
 public class TwoWheelBalanceBot {
     final private OpMode theOpmode; // Set during construction.  Enables using telemetry and gamepad
     public boolean LOG = true;  // should the log be recorded?
 
     public boolean TELEMETRY = true; // switch for telemetry
-
-    public boolean APRILTAG = false; // switch for AprilTags
 
     Datalog datalog; // create the data logger object
 
@@ -52,14 +42,11 @@ public class TwoWheelBalanceBot {
     static final double WHEELBASE = 300; // robot Wheel base (mm)
 
     static final double REVSPUR40PPR = 1120; // REV Core Hex Motor Pulses per Revolution at output shaft
+    //static final double     COUNTS_PER_REV    = 2048.0 ;    // CUI ATM103 Encoder at most PPR
     static final double WHEELDIA = 203.0; // 8 inch wheel diameter (mm)
 
     static final double TICKSPERMM = (REVSPUR40PPR)/(WHEELDIA*Math.PI); // REV SPUR 40:1, 8in wheels
 
-
-    //static final double     COUNTS_PER_REV    = 2048.0 ;    // CUI ATM103 Encoder at most PPR
-    //static final double     POD_DIAMETER_MM   = 38.0 ;     // TEMPORARY, DIA OF ODO OMNI WHEELS
-    //static final double     COUNTS_PER_MM        = (COUNTS_PER_REV*POD_DIAMETER_MM) / (WHEELDIA);
     // YAW PID
     PIDController yawPID = new PIDController(0.45, 0.12, 0.05); // kp, ki, kd
 
@@ -69,39 +56,35 @@ public class TwoWheelBalanceBot {
     double pitchTarget = 0;
 
     double pitch = 0; // degrees, value got from imu
-    double zeroVoltsAdjust = 0.0; //
     double pitchError = 0;
 
     public double yawTarget = 0.0; // from the user joystick in teleop or from auto routines
     public double yaw = 0;
     double priorYaw = 0;
     double rawYaw, rawPriorYaw = 0;
-    double yawRATE; // not used other than for datalog
     double yawPower;
+
     public boolean ClawIsClosed = false; //Claw boolean
 
     final private IMU imu;
+
     private YawPitchRollAngles orientation;   // part of FIRST navigation classes
 
     final private VoltageSensor battery;
-    double currentVoltage = 12.0;
+    double currentVoltage = 12.0; // This value is overridden with a measured value in start()
 
     //Handles the arm control, and adjusting the arm for the pitch of the robot
     final public TWBArmServo theArm;
 
     public DcMotor leftDrive;
     public DcMotor rightDrive;
-    //public DcMotor rightODO;  // TEMPORARY UNTIL ODO TEST IS COMPLETE
 
     TWBOdometry odometry; // two wheel odometry object with running average
     int i = 0;  // loop counter, used with data logging
 
-    // Timers
-    ElapsedTime runtime = new ElapsedTime();
-    ElapsedTime distTimer = new ElapsedTime();
-    private final RunningAverage deltaTimeRA = new RunningAverage(8); // Running average of linear velocity
+    ElapsedTime runtime = new ElapsedTime(); // Timer used to check loop times
+    private final RunningAverage deltaTimeRA = new RunningAverage(8);
     private double currentTime;
-    double deltaTime = 0.02;
 
     public double sOdom; // Current robot position from odometry
     double theta;  // used with odometry
@@ -117,46 +100,23 @@ public class TwoWheelBalanceBot {
     public double PitchAmplitude = 0;
 
     /**
-     * The variable to store our instance of the AprilTag processor.
-     */
-    public AprilTagProcessor aprilTag;
-
-    /**
-     * The variable to store our instance of the vision portal.
-     */
-    public VisionPortal visionPortal;
-    private Position cameraPosition = new Position(DistanceUnit.INCH,
-            0, 0, 0, 0);
-    private YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES,
-            0, -90, 0, 0);
-
-    private HardwareMap hwmp;
-    /**
      * TWB Constructor.  Call once in initialization.
       */
     public TwoWheelBalanceBot(HardwareMap hardwareMap, OpMode opMode) {
 
         this.theOpmode = opMode; // set the opmode that is calling this class
-        // Initialize the datalog
 
-        this.hwmp = hardwareMap;
-
-        deltaTimeRA.addNumber(0.04); // add to running average to smooth start
+        deltaTimeRA.addNumber(0.04); // add to running average to smooth the start
 
         // Define and Initialize Motors
         leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-
-        //rightODO = hardwareMap.get(DcMotor.class, "rightodo"); // TEMPORARY
 
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
         rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        //rightODO.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // TEMPORARY
-        //rightODO.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // TEMPORARY
 
         leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -186,55 +146,13 @@ public class TwoWheelBalanceBot {
      * TWB init. Called once at initialization
      */
     public void init() {
-        if (LOG) datalog = new Datalog("TWBODO");
-
-        if (APRILTAG) {
-
-            // Create the AprilTag processor.
-            aprilTag = new AprilTagProcessor.Builder()
-
-                // The following default settings are available to un-comment and edit as needed.
-                //.setDrawAxes(false)
-                //.setDrawCubeProjection(false)
-                //.setDrawTagOutline(true)
-                .setOutputUnits(DistanceUnit.CM, AngleUnit.RADIANS)
-                .setCameraPose(cameraPosition, cameraOrientation)
-
-                .build();
-
-            // Adjust Image Decimation to trade-off detection-range for detection-rate.
-            // eg: Some typical detection data using a Logitech C920 WebCam
-            // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
-            // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
-            // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second (default)
-            // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second (default)
-            // Note: Decimation can be changed on-the-fly to adapt during a match.
-            aprilTag.setDecimation(6);
-
-            // Create the vision portal by using a builder.
-            VisionPortal.Builder builder = new VisionPortal.Builder();
-
-            builder.setCamera(hwmp.get(WebcamName.class, "Webcam 1"));
-
-            builder.enableLiveView(true);
-            //builder.setLiveViewContainerId(1);
-
-            // Set and enable the processor.
-            builder.addProcessor(aprilTag);
-
-            // Build the Vision Portal, using the above settings.
-            visionPortal = builder.build();
-        }
-
+        if (LOG) datalog = new Datalog("TWBlog");
     }
     /**
      * TWB init loop.  Called repeatedly in initialization.
       */
     public void init_loop() {
         theOpmode.telemetry.addData("LOG", LOG);
-        theOpmode.telemetry.addData("APRIL TAG", APRILTAG);
-
-        //theOpmode.telemetry.addData("Right ODO at",  " at %7d",rightODO.getCurrentPosition()); // TEMPORARY
     }
 
     /**
@@ -258,34 +176,12 @@ public class TwoWheelBalanceBot {
     }
 
     /**
-     *  TWB Servo rigging method. Gets the Arm and Claw servos ready for attaching the horns (rigging)
-     *  Arm should be straight up.  Claw should be closed.
-     *  Call repeatedly in initialization.
-      */
-    public void servo_rig_loop() {
-        theOpmode.telemetry.addData("ARM", "RIGGING");
-        theOpmode.telemetry.addData("ATTACH ARM", "STRAIGHT UP");
-
-        orientation = imu.getRobotYawPitchRollAngles();
-        pitch = orientation.getPitch(AngleUnit.DEGREES);
-        theOpmode.telemetry.addData("Pitch (DEG)", pitch);
-
-        theArm.setArmAngle(0.0);
-        theOpmode.telemetry.addData("Arm Angle (DEG)", theArm.getAngle());
-        armPitchTarget = theArm.updateArm(0.02); // This will make the arm move
-
-    }
-
-    /**
      * TWB start method. Called once on Start press. Resets encoders, timers, PIDs
       */
     public void start(double armAngle) {
         // reset the encoders because the robot may have moved during auto righting
         leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        //rightODO.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // TEMPORARY
-        //rightODO.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // TEMPORARY
 
         leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -296,7 +192,6 @@ public class TwoWheelBalanceBot {
 
         // reset the timers for the datalog timestamp, turns, runToPos
         runtime.reset();
-        distTimer.reset();
 
         // reset the PIDs
         yawPID.reset();
@@ -316,13 +211,8 @@ public class TwoWheelBalanceBot {
     public void loop() {
         double leftTicks = leftDrive.getCurrentPosition();
         double rightTicks = rightDrive.getCurrentPosition();
-        //double rightODOTicks = rightODO.getCurrentPosition();  // TEMPORARY
 
         AngularVelocity angularVelocity;  // part of FIRST navigation classes
-
-        int at_id = 0;
-        double at_range = 0;
-        double at_bearing = 0;
 
         i++;  // index the loop counter
 
@@ -340,7 +230,6 @@ public class TwoWheelBalanceBot {
         angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
         pitch = orientation.getPitch(AngleUnit.DEGREES);
         double pitchRATE = angularVelocity.xRotationRate;
-        yawRATE = angularVelocity.zRotationRate;
 
         // get values from wheel encoders (odometry)
         odometry.update(leftTicks / TICKSPERMM, rightTicks / TICKSPERMM, pitch, deltaTime);
@@ -350,8 +239,6 @@ public class TwoWheelBalanceBot {
 
         // The robot pitch target is determined by the angle of the arm.
         armPitchTarget = theArm.updateArm(deltaTime); // update arm position (this makes it move)
-
-
 
         // MAIN BALANCE CONTROL CODE:
         double posError = sOdom - posTarget;
@@ -385,23 +272,11 @@ public class TwoWheelBalanceBot {
         else if (totalPowerVolts < -14) totalPowerVolts = -14;
 
          // Set the motor power for both wheels
-        leftDrive.setPower(totalPowerVolts / currentVoltage - yawPower + zeroVoltsAdjust);
-        rightDrive.setPower(totalPowerVolts / currentVoltage + yawPower + zeroVoltsAdjust);
+        leftDrive.setPower(totalPowerVolts / currentVoltage - yawPower);
+        rightDrive.setPower(totalPowerVolts / currentVoltage + yawPower);
 
         if (ClawIsClosed) clawServo.setPosition(1.0); // closed value (0.98 for blocks)
         else clawServo.setPosition(0.35); // open value (WAS 0.35)
-
-        if(APRILTAG) {
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            // Step through the list of detections and display info for each one.
-            for (AprilTagDetection detection : currentDetections) {
-                if (detection.metadata != null) {
-                    at_id = detection.id;
-                    at_range = detection.ftcPose.range;
-                    at_bearing = detection.ftcPose.bearing;
-                }
-            }
-        }
 
         if (LOG) {
             // Data log 
@@ -420,12 +295,10 @@ public class TwoWheelBalanceBot {
             datalog.yaw.set(yaw);
             datalog.yawTarget.set(yawTarget);
             datalog.yawTheta.set(theta);
-            datalog.yawRATE.set(angularVelocity.zRotationRate);
             datalog.x.set(odometry.getX());
             datalog.y.set(odometry.getY());
             datalog.leftTicks.set(leftTicks/ TICKSPERMM);
             datalog.rightTicks.set(rightTicks); // TICKSPERMM
-            //datalog.rightODO.set(rightODOTicks/39.5);  // TEMPORARY
             datalog.linVelo.set(odometry.getLinearVelocity());
             datalog.avgLinVelo.set(linearVelocity); // this is a running average
             datalog.positionVolts.set(positionVolts);
@@ -440,9 +313,6 @@ public class TwoWheelBalanceBot {
             datalog.KpitchRate.set(KpitchRate);
             datalog.PosAmplitude.set(PosAmplitude);
             datalog.PitchAmplitude.set(PitchAmplitude);
-            datalog.ATid.set(at_id);
-            datalog.ATrange.set(at_range);
-            datalog.ATbearing.set(at_bearing);
 
             // The logged timestamp is taken when writeLine() is called.
             datalog.writeLine();
@@ -491,7 +361,6 @@ public class TwoWheelBalanceBot {
         public Datalogger.GenericField yaw = new Datalogger.GenericField("Yaw");
         public Datalogger.GenericField yawTarget = new Datalogger.GenericField("yawTarget");
         public Datalogger.GenericField yawTheta = new Datalogger.GenericField("Theta");
-        public Datalogger.GenericField yawRATE = new Datalogger.GenericField("yawRATE");
         public Datalogger.GenericField x = new Datalogger.GenericField("x");
         public Datalogger.GenericField y = new Datalogger.GenericField("y");
         public Datalogger.GenericField leftTicks = new Datalogger.GenericField("leftMtrMM");
@@ -512,9 +381,6 @@ public class TwoWheelBalanceBot {
 
         public Datalogger.GenericField PosAmplitude = new Datalogger.GenericField("PosAmplitude");
         public Datalogger.GenericField PitchAmplitude = new Datalogger.GenericField("PitchAmplitude");
-        public Datalogger.GenericField ATid = new Datalogger.GenericField("AprilTagID");
-        public Datalogger.GenericField ATrange = new Datalogger.GenericField("AprilTagRange");
-        public Datalogger.GenericField ATbearing = new Datalogger.GenericField("AprilTagBearing");
 
         public Datalog(String name) {
             // Build the underlying datalog object
@@ -543,7 +409,6 @@ public class TwoWheelBalanceBot {
                             yaw,
                             yawTarget,
                             yawTheta,
-                            yawRATE,
                             x,
                             y,
                             leftTicks,
@@ -562,10 +427,7 @@ public class TwoWheelBalanceBot {
                             Kpitch,
                             KpitchRate,
                             PosAmplitude,
-                            PitchAmplitude,
-                            ATid,
-                            ATrange,
-                            ATbearing
+                            PitchAmplitude
                     )
                     .build();
         }
@@ -575,17 +437,6 @@ public class TwoWheelBalanceBot {
         public void writeLine() {
             datalogger.writeLine();
         }
-    }
-
-    /**
-     * TWB method to provide buttons for tuning zero voltage constant.
-     */
-    public void adjustThingButtons() {
-        if (theOpmode.gamepad1.leftStickButtonWasPressed())  zeroVoltsAdjust += 0.1;
-        else if (theOpmode.gamepad1.rightStickButtonWasPressed()) zeroVoltsAdjust -= 0.1;
-
-        theOpmode.telemetry.addData("STICK BUTTONS", "ADJUST ZERO VOLTS");
-        theOpmode.telemetry.addData("Zero Volts Adjust (volts)", "%.1f ", zeroVoltsAdjust);
     }
 
     /**

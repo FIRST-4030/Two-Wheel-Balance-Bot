@@ -7,9 +7,10 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 /**
- * Iterative Tele OpMode is for a Two Wheel Balancing Robot with Arm.
+ * Iterative Tele OpMode is for driving a Two Wheel Balancing Robot with Arm
+ * in TANK mode.
  */
-@TeleOp(name="TWB Tele Tank Drive")
+@TeleOp(name="TWB Tank Drive mode")
 //@Disabled
 public class TWB_OpMode_TankDrive extends OpMode
 {

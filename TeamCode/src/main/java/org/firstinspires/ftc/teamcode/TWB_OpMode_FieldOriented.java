@@ -33,7 +33,15 @@ public class TWB_OpMode_FieldOriented extends OpMode
         twb.TELEMETRY = false;
 
         twb.init();
-
+        /*
+        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge (FTC) SDK controls
+        how frequently telemetry data is sent from the Robot Controller to the Driver Station
+        250 (milliseconds) is the default value and a good general-purpose interval that balances updates with bandwidth usage.
+        100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates (e.g., vision processing, rapid sensor changes).
+        A lower interval provides a more real-time view of data on the Driver Station but increases communication bandwidth usage,
+        which might impact other network-dependent tasks (like vision processing).
+         */
+        telemetry.setMsTransmissionInterval(100);
     }
 
     /**
@@ -81,7 +89,7 @@ public class TWB_OpMode_FieldOriented extends OpMode
 
             double shortestAngleMove = twb.shortestAngleDifference(angle.getAverage(), twb.yawTarget); // radians
             telemetry.addData("shortest turn (deg)", "%.1f ", shortestAngleMove*180/Math.PI);
-            twb.yawTarget += shortestAngleMove;  // The TWB yaw PID controller does the rest
+            twb.yawTarget += shortestAngleMove;  // Adjust yawTarget and the TWB yaw PID controller does the rest
         }
 
         twb.translateDrive(-speed.getAverage());
