@@ -4,6 +4,8 @@ This class is for a Two Wheel Balancing Robot With Arm
 
 package org.firstinspires.ftc.teamcode;
 
+import android.annotation.SuppressLint;
+
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -48,7 +50,7 @@ public class TwoWheelBalanceBot {
     static final double TICKSPERMM = (REVSPUR40PPR)/(WHEELDIA*Math.PI); // REV SPUR 40:1, 8in wheels
 
     // YAW PID
-    PIDController yawPID = new PIDController(0.45, 0.12, 0.05); // kp, ki, kd
+    PIDController yawPID = new PIDController(0.45, 0.14, 0.06); // kp 0.45, ki 0.12, kd 0.05
 
     public double posTarget = 0.0;
     public double veloTarget = 0.0;
@@ -91,8 +93,6 @@ public class TwoWheelBalanceBot {
 
     double armPitchTarget = 0; // degrees
 
-    //Timer to limit how frequently the claw opens the closes
-    ElapsedTime clawTimer = new ElapsedTime();
     public Servo clawServo;
 
     // used in Design of Experiments
@@ -152,7 +152,7 @@ public class TwoWheelBalanceBot {
      * TWB init loop.  Called repeatedly in initialization.
       */
     public void init_loop() {
-        theOpmode.telemetry.addData("LOG", LOG);
+        //theOpmode.telemetry.addData("LOG", LOG);
     }
 
     /**
@@ -208,6 +208,7 @@ public class TwoWheelBalanceBot {
      * TWB Main Loop method.  Call repeatedly while running. Contains balance control logic.
      * Teleoperated inputs are removed from this method, so it can be called in autonomous.
       */
+    @SuppressLint("DefaultLocale")
     public void loop() {
         double leftTicks = leftDrive.getCurrentPosition();
         double rightTicks = rightDrive.getCurrentPosition();
@@ -288,7 +289,6 @@ public class TwoWheelBalanceBot {
             datalog.pos.set(sOdom);
             datalog.posTarget.set(posTarget);
             datalog.veloTarget.set(veloTarget);
-            //datalog.accelTarget.set(accelTarget);
             datalog.pitch.set(pitch);
             datalog.pitchTarget.set(pitchTarget);
             datalog.pitchRATE.set(pitchRATE);
@@ -318,19 +318,10 @@ public class TwoWheelBalanceBot {
             datalog.writeLine();
         }
         if (TELEMETRY) {
-
-            theOpmode.telemetry.addData("s position Target (mm)", "%.1f ", posTarget);
-            theOpmode.telemetry.addData("s position Odometry (mm)", "%.1f ", sOdom);
-
-            theOpmode.telemetry.addData("Velocity Target (mm/sec)", "%.1f ", veloTarget);
-            theOpmode.telemetry.addData("Velocity Current (mm/sec)", "%.1f ", linearVelocity);
-
-            theOpmode.telemetry.addData("Arm Target Angle", theArm.getTargetAngle());
-            theOpmode.telemetry.addData("Arm Current Angle", theArm.getAngle());
-
-            theOpmode.telemetry.addData("Pitch Target (degrees)", "%.1f ", pitchTarget);
-            theOpmode.telemetry.addData("Pitch IMU (degrees)", "%.1f ", pitch);
-
+            theOpmode.telemetry.addLine(String.format("s Position Target %.1f ,Current %.1f (mm)",posTarget,sOdom));
+            theOpmode.telemetry.addLine(String.format("s Velocity Target %.1f ,Current %.1f (mm/sec)",veloTarget,linearVelocity));
+            theOpmode.telemetry.addLine(String.format("Pitch Target %.1f ,Current %.1f (degrees)",pitchTarget,pitch));
+            theOpmode.telemetry.addLine(String.format("Arm Angle Target %.1f ,Current %.1f (degrees)",theArm.getTargetAngle(),theArm.getAngle()));
             theOpmode.telemetry.addData("Claw Servo", clawServo.getPosition());
         }
 
@@ -405,7 +396,6 @@ public class TwoWheelBalanceBot {
                             pos,
                             posTarget,
                             veloTarget,
-                            //accelTarget,
                             yaw,
                             yawTarget,
                             yawTheta,
@@ -467,10 +457,10 @@ public class TwoWheelBalanceBot {
         else if (theOpmode.gamepad1.right_stick_y < -0.3) theArm.setArmAngle(theArm.getAngle() - 2.0);
 
         //Set arm angle for cargo deposit
-        if (theOpmode.gamepad1.left_bumper) theArm.setArmAngle(90.0);
+        if (theOpmode.gamepad1.left_bumper) theArm.setArmAngle(-90.0);
 
         //Set arm angle to cargo collection
-        if (theOpmode.gamepad1.right_bumper) theArm.setArmAngle(-140.0);
+        if (theOpmode.gamepad1.right_trigger_pressed) theArm.setArmAngle(-150.0);
 
         //Sets arm to vertical. Increment and hold are modified to properly represent the operative state
         if (theOpmode.gamepad1.left_trigger > 0.5) theArm.setArmAngle(0.0);
@@ -481,22 +471,24 @@ public class TwoWheelBalanceBot {
      */
     public void claw_teleop() {
         //Controls the claw boolean
-        if ((theOpmode.gamepad1.right_trigger > 0.5) && clawTimer.milliseconds() > 333) {
-            clawTimer.reset();
-            ClawIsClosed = !ClawIsClosed;
-
-            if (ClawIsClosed) theArm.setArmAngle(theArm.getAngle() + 5.0);  // raise the arm a bit
+        if (theOpmode.gamepad1.rightBumperWasPressed()) {
+            if (ClawIsClosed)  ClawIsClosed = false; // open
+            else { // close
+                theArm.setArmAngle(theArm.getAngle() + 15.0);  // raise the arm a bit
+                ClawIsClosed = true;
+            }
         }
     }
 
     /**
      * TWB method to provide user control of turning the robot.
-     * @param speed a value from 0.01 to 0.05 to adjust the speed of the turn
+     * @param deltaAngle a value from -1 to 1 in radians
+     * @param scale a value to scale the deltaAngle
      */
-    public void turn_teleop(double speed) {
+    public void turn_teleop(double deltaAngle, double scale) {
         // Robot Turning:
         // The right joystick turns the robot by adjusting the yaw PID turn setpoint
-        yawTarget -= theOpmode.gamepad1.right_stick_x * speed;  // get turn from gamepad (radian)
+        yawTarget -= deltaAngle * scale;  // get turn from gamepad (radian)
     }
 
     /**
@@ -512,25 +504,13 @@ public class TwoWheelBalanceBot {
         posTarget -= forward * 7.0;
     }
 
-    /**
-     * Calculates the shortest distance to turn from angle A to angle B.
-     * @param a Start angle in radians
-     * @param b Target angle in radians
-     * @return Shortest angle difference (-PI to PI)
-     */
-    public static double shortestAngleDifference(double a, double b) {
-        double difference = a - b;
-        // Normalize to (-PI, PI]
-        while (difference <= -Math.PI) difference += 2.0*Math.PI;
-        while (difference > Math.PI) difference -= 2.0*Math.PI;
-        return difference;
+    public void imuYawReset() {
+        // Doesn't seem to be working if robot yaw is greater than 180
+        imu.resetYaw();
+        yawTarget = 0.0;
+        yaw = 0.0;
+        yawPID.reset();
+
     }
 
-     /*
-    public void slow_ramp() {
-
-        // Slow Power Ramp, for Ks determination
-        //totalPowerVolts = (double)i * 0.002;
-    }
-     */
 }

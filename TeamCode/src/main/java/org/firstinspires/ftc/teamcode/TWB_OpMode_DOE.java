@@ -66,7 +66,6 @@ public class TWB_OpMode_DOE extends OpMode {
 
         twb.LOG = true;
         twb.TELEMETRY = false;
-        twb.APRILTAG = false;
 
         KPOS = minKpos;
         KPIT = minKpitch;

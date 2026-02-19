@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
  * Iterative Tele OpMode is for driving a Two Wheel Balancing Robot with Arm
  * in TANK mode.
  */
-@TeleOp(name="TWB Tank Drive mode")
+@TeleOp(name="TWB Robot Oriented drive mode")
 //@Disabled
 public class TWB_OpMode_TankDrive extends OpMode
 {
@@ -69,7 +69,9 @@ public class TWB_OpMode_TankDrive extends OpMode
         // get teleoperated inputs
         twb.translateDrive(joystickS.getAverage());
 
-        twb.turn_teleop(0.02);
+        // Either joystick can turn the robot.  Different speeds.
+        twb.turn_teleop(gamepad1.left_stick_x,0.02);
+        twb.turn_teleop(gamepad1.right_stick_x,0.01);
 
         twb.arm_teleop();
 
