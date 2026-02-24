@@ -40,8 +40,6 @@ public class TWB_OpMode_Auto1 extends OpMode {
     public void init() {
         twb = new TwoWheelBalanceBot(hardwareMap,this); // Create twb object
 
-        twb.LOG = true;
-
         twb.ClawIsClosed = true; // close the claw
 
         twb.init();

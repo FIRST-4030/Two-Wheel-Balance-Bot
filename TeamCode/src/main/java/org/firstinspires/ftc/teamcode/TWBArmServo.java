@@ -60,25 +60,6 @@ public class TWBArmServo {
         pitchAngVec.addElement(120,-9.06833); // new global arm angle is 110.932"
         pitchAngVec.addElement(140,-6.22194); // new global arm angle is 133.778"
         pitchAngVec.addElement(160,-2.205); // new global arm angle is 157.795"
-/* Balanced arm
-        pitchAngVec.addElement(-160,4.26974); // new global arm angle is -155.73
-        pitchAngVec.addElement(-140,7.69909); // new global arm angle is -132.301
-        pitchAngVec.addElement(-120,9.78656); // new global arm angle is -110.213
-        pitchAngVec.addElement(-100,10.4355); // new global arm angle is -89.5645
-        pitchAngVec.addElement(-80,9.81183); // new global arm angle is -70.1882
-        pitchAngVec.addElement(-60,8.18526); // new global arm angle is -51.8147
-        pitchAngVec.addElement(-40,5.83785); // new global arm angle is -34.1622
-        pitchAngVec.addElement(-20,3.03044); // new global arm angle is -16.9696
-        pitchAngVec.addElement(0,0); // new global arm angle is 0
-        pitchAngVec.addElement(20,-3.03044); // new global arm angle is 16.9696
-        pitchAngVec.addElement(40,-5.83785); // new global arm angle is 34.1622
-        pitchAngVec.addElement(60,-8.18526); // new global arm angle is 51.8147
-        pitchAngVec.addElement(80,-9.81183); // new global arm angle is 70.1882
-        pitchAngVec.addElement(100,-10.4355); // new global arm angle is 89.5645
-        pitchAngVec.addElement(120,-9.78656); // new global arm angle is 110.213
-        pitchAngVec.addElement(140,-7.69909); // new global arm angle is 132.301
-        pitchAngVec.addElement(160,-4.26974); // new global arm angle is 155.73
-*/
         }
 
     /**

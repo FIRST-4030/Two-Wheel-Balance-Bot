@@ -33,7 +33,6 @@ public class TWB_OpMode_FieldOriented extends OpMode
 
         speed = new RunningAverage(5); // initialize size of running average
 
-        twb.LOG = false;
         twb.TELEMETRY = false;
 
         datalog = new DatalogFO("FieldOrientlog");
@@ -106,7 +105,7 @@ public class TWB_OpMode_FieldOriented extends OpMode
             }
         }
 
-        twb.translateDrive(-speed.getAverage());
+        twb.translateDrive(-speed.getAverage(),6,7);
 
         twb.turn_teleop(gamepad1.right_stick_x,0.02);
 

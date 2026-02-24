@@ -28,8 +28,6 @@ public class TWB_OpMode_TankDrive extends OpMode
 
         joystickS = new RunningAverage(5); // initialize size of running average
 
-        twb.LOG = false;
-
         twb.init();
 
     }
@@ -67,7 +65,7 @@ public class TWB_OpMode_TankDrive extends OpMode
         joystickS.addNumber(gamepad1.left_stick_y);
 
         // get teleoperated inputs
-        twb.translateDrive(joystickS.getAverage());
+        twb.translateDrive(joystickS.getAverage(),6,7);
 
         // Either joystick can turn the robot.  Different speeds.
         twb.turn_teleop(gamepad1.left_stick_x,0.02);
