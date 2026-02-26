@@ -5,17 +5,16 @@ package org.firstinspires.ftc.teamcode;
 
 import android.annotation.SuppressLint;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
- * This Iterative OpMode is for a Two Wheel Balancing Robot with Arm.
- * It initializes to balancing, then runs through a series of Kposition and Kpitch values
- * with small perturbations to make the robot rock.
- * Telemetry shows the values with the lowest oscillations - write these down at the end!
- * Also, one can review the datalog and see when the robot is well balanced.
+ * This Iterative Design of Experiments OpMode is for a Two Wheel Balancing Robot with Arm.
+ * It initializes to balancing, then runs through a series of Kposition and Kpitch terms
+ * with a perturbation (jiggle) to make the robot rock.
+ * A datalog records the min/max of position and pitch for each test, with the
+ * expectation that the lowest mix/max are the most stable terms.
  */
 //@Disabled
 @TeleOp(name="TWB Design of Experiments")
@@ -25,36 +24,24 @@ public class TWB_OpMode_DOE extends OpMode {
     final private ElapsedTime moveTimer = new ElapsedTime();
 
     // DOE constants.  Modify these for the experiment
-    private final double minKpos = 0.010; //
-    private final double maxKpos = 0.020; //
-    private final int NKPOS = 5;
-    private final double minKpitch = -0.60; // -.85 for -90 to 90
-    private final double maxKpitch = -0.50; // -0.70 for -90 to 90
-    private final int NKPITCH = 5;
+    private final double ARMANGLE = -90.0;
     private final double testDuration = 5.0; // seconds per experiment
-
     private final double JIGGLEDEG = 10; // Pitch jiggle for each experiment
 
-    // Design of experiment variables:
-    private double KPOS; // DOE value
-    private double KPIT; // DOE value
+    // Modify the Terms in init()
+    private Term Kpos;
+    private Term Kpitch;
+    private Term Kvelo;
+    private Term KpitchRate;
 
-    // Variables for recording position wave amplitude
-    private double minPos = 1000; // mm
-    private double maxPos = -1000; // mm
-
-    // Variables for recording pitch wave amplitude
-    private double minPitch = 45; // degrees
-    private double maxPitch = -45; // degrees
-
+    // Internal variables
     private int count = 1; // for counting the DOE
-
+    private int NEXPERIMENTS; // total experiments, set in init
     private DatalogTWB datalogTWB; // datalog for full recording
 
     private DatalogEXP datalogEXP;  // data logger for experiments
 
-    private double originalKpos;
-    private double originalKpitch;
+    private RunningAverage robotPos; // to look for the balanced angle
 
     /**
      * Code to run ONCE when the driver hits INIT
@@ -63,6 +50,7 @@ public class TWB_OpMode_DOE extends OpMode {
     public void init() {
         twb = new TwoWheelBalanceBot(hardwareMap,this); // Create twb object
 
+        // NOTE: TWO datalogs are written!
         datalogTWB = new DatalogTWB();
         datalogTWB.init("DOEfull");
 
@@ -71,15 +59,18 @@ public class TWB_OpMode_DOE extends OpMode {
         twb.TELEMETRY = false;
         twb.ClawIsClosed = true; // close the claw
 
-        KPOS = minKpos;    // set the initial DOE K term
-        KPIT = minKpitch;  // set the initial DOE K term
+        // MODIFY THESE FOR THE EXPERIMENTS
+        Kpos = new Term(0.014,0.018,3,twb.Kpos);
+        Kpitch = new Term(-0.60,-0.54,3,twb.Kpitch);
+        Kvelo = new Term(0.014,0.018,3,twb.Kvelo);  // 0.020 breaks bot
+        KpitchRate = new Term(-0.026,-0.020,3,twb.KpitchRate);
 
-        originalKpos = twb.Kpos;     // save the original K term
-        originalKpitch = twb.Kpitch; // save the original K term
+        NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
+
+        robotPos = new RunningAverage(100); // initialize size of running average
 
         twb.init();
-        twb.start(-90.0); // set the arm angle
-
+        twb.start(ARMANGLE); // set the arm angle
     }
 
     /**
@@ -88,10 +79,13 @@ public class TWB_OpMode_DOE extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData("EXPERIMENT", "INIT LOOP");
+        telemetry.addData("DOE EXPERIMENT, ARM Angle (deg) =", ARMANGLE);
         twb.loop();  // MAIN CONTROL SYSTEM
 
-        telemetry.addData("Robot Pitch ", twb.pitch);
+        robotPos.addNumber(twb.sOdom);
+        telemetry.addData("Robot Position (mm) (Averaged)","  %.1f", robotPos.getAverage());
+
+        telemetry.addData("Robot Pitch (deg)"," %.1f", twb.pitch);
 
         telemetry.update();
     }
@@ -111,65 +105,76 @@ public class TWB_OpMode_DOE extends OpMode {
     @Override
     @SuppressLint("DefaultLocale")
     public void loop() {
-        double incrementKpos = (maxKpos-minKpos) / NKPOS;  // calculated
-        double incrementKpitch = (maxKpitch - minKpitch) / NKPITCH;   // calculated
-
         // give robot a jiggle at the beginning of each period to get a wave
         // while using the original K terms so that the jiggle is consistent
         if(moveTimer.seconds() < 0.1) {
+            twb.Kpos = Kpos.orig;
+            twb.Kpitch = Kpitch.orig;
+            twb.Kvelo = Kvelo.orig;
+            twb.KpitchRate = KpitchRate.orig;
             twb.autoPitchTarget = JIGGLEDEG; // add JIGGLEDEG degrees initially to jiggle
+
         } else if(moveTimer.seconds() <= testDuration) {
             twb.autoPitchTarget = 0.0;
-            twb.Kpos = KPOS;   // set the new DOE K term
-            twb.Kpitch = KPIT; // set the new DOE K term
-            // during the experiment
-            // build the minimum amplitude "box" on the position wave
-            minPos = Math.min(twb.sOdom, minPos);
-            maxPos = Math.max(twb.sOdom, maxPos);
+            // set the new DOE K terms
+            twb.Kpos = Kpos.current;
+            twb.Kpitch = Kpitch.current;
+            twb.Kvelo = Kvelo.current;
+            twb.KpitchRate = KpitchRate.current;
 
-            // build the minimum amplitude "box" on the pitch wave
-            minPitch = Math.min(twb.pitch, minPitch);
-            maxPitch = Math.max(twb.pitch, maxPitch);
+            // during the experiment, after the jiggle, record min/max
+            if(moveTimer.seconds() > 0.3) {
+                // build the minimum amplitude "box" on the position wave
+                Kpos.updateMinMax(twb.sOdom);
+
+                // build the minimum amplitude "box" on the pitch wave
+                Kpitch.updateMinMax(twb.pitch);
+            }
+
         } else if(moveTimer.seconds() > testDuration) {
             // At the end of the experiment, only once, log data and do resets
 
             // datalog - one line for each experiment
             // count, KPIT, KPOS (the inputs)
             datalogEXP.count.set(count);
-            datalogEXP.KPIT.set(KPIT);
-            datalogEXP.KPOS.set(KPOS);
+            datalogEXP.KPIT.set(Kpitch.current);
+            datalogEXP.KPOS.set(Kpos.current);
+            datalogEXP.KVELO.set(Kvelo.current);
+            datalogEXP.KPITRATE.set(KpitchRate.current);
             // min, max and amplitudes (the results)
-            datalogEXP.minPos.set(minPos);
-            datalogEXP.maxPos.set(maxPos);
-            datalogEXP.ampPos.set(maxPos - minPos);
-            datalogEXP.minPitch.set(minPitch);
-            datalogEXP.maxPitch.set(maxPitch);
-            datalogEXP.ampPitch.set(maxPitch - minPitch);
+            datalogEXP.minPos.set(Kpos.min);
+            datalogEXP.maxPos.set(Kpos.max);
+            double ampPos = Kpos.max - Kpos.min;
+            datalogEXP.ampPos.set(ampPos);
+            double AvgPos = (Kpos.min+Kpos.max)/2.0;
+            datalogEXP.AvgPos.set(AvgPos);
+            datalogEXP.minPitch.set(Kpitch.min);
+            datalogEXP.maxPitch.set(Kpitch.max);
+            double ampPitch = Kpitch.max - Kpitch.min;
+            datalogEXP.ampPitch.set(ampPitch);
+            datalogEXP.score.set(ampPitch*4.0+ampPos+Math.abs(AvgPos)); // low score wins!
 
             // The logged timestamp is taken when writeLine() is called.
             datalogEXP.writeLine();
 
             // set up for the next experiment
-            KPIT = KPIT + incrementKpitch;
-            if (count % NKPOS == 0) {
-                KPIT = minKpitch; // set back to min
-                KPOS = KPOS + incrementKpos;
+            KpitchRate.next();
+            if(count % Kvelo.getN() == 0) {
+                Kvelo.next();
             }
-
-            twb.Kpos = originalKpos;   // set the original  DOE K term for the jiggle
-            twb.Kpitch = originalKpitch; // set the original  DOE K term for the jiggle
-
-            //twb.Kvelo = KPOS;  now set after the jiggle
-            //twb.Kpitch = KPIT; now set after the jiggle
+            if((count % (Kvelo.getN()*KpitchRate.getN())) == 0) {
+                Kpos.next();
+            }
+            if((count % (Kvelo.getN()*KpitchRate.getN()*Kpos.getN())) == 0) {
+                Kpitch.next();
+            }
 
             moveTimer.reset();
 
             count += 1;
 
-            minPos = 1000;
-            maxPos = -1000;
-            minPitch = 45;
-            maxPitch = -45;
+            Kpos.resetMinMax();
+            Kpitch.resetMinMax();
         }
 
         twb.loop();  // CALL MAIN TWB CONTROL SYSTEM
@@ -179,10 +184,11 @@ public class TWB_OpMode_DOE extends OpMode {
                 twb.positionVolts,twb.pitchVolts); // for datalog every loop cycle
         datalogTWB.writeLineTWB();
 
-        int NEXPERIMENTS = NKPOS * NKPITCH;
         telemetry.addLine(String.format("EXPERIMENT %d ,OF TOTAL %d",count, NEXPERIMENTS));
-        telemetry.addData("Kposition",KPOS);
-        telemetry.addData("Kpitch",KPIT);
+        telemetry.addData("Kposition",Kpos.current);
+        telemetry.addData("Kpitch",Kpitch.current);
+        telemetry.addData("Kvelo",Kvelo.current);
+        telemetry.addData("KpitchRate",KpitchRate.current);
 
         telemetry.update();
 
@@ -200,13 +206,18 @@ public class TWB_OpMode_DOE extends OpMode {
         public Datalogger.GenericField count = new Datalogger.GenericField("count");
         public Datalogger.GenericField KPIT = new Datalogger.GenericField("KPIT");
         public Datalogger.GenericField KPOS = new Datalogger.GenericField("KPOS");
+        public Datalogger.GenericField KVELO = new Datalogger.GenericField("KVELO");
+        public Datalogger.GenericField KPITRATE = new Datalogger.GenericField("KPITRATE");
+
         public Datalogger.GenericField minPos = new Datalogger.GenericField("minPos");
         public Datalogger.GenericField maxPos = new Datalogger.GenericField("maxPos");
         public Datalogger.GenericField ampPos = new Datalogger.GenericField("ampPos");
+        public Datalogger.GenericField AvgPos = new Datalogger.GenericField("AVG_Pos");
 
         public Datalogger.GenericField minPitch = new Datalogger.GenericField("minPitch");
         public Datalogger.GenericField maxPitch = new Datalogger.GenericField("maxPitch");
         public Datalogger.GenericField ampPitch = new Datalogger.GenericField("ampPitch");
+        public Datalogger.GenericField score = new Datalogger.GenericField("SCORE");
 
 
         public DatalogEXP(String name) {
@@ -226,12 +237,16 @@ public class TWB_OpMode_DOE extends OpMode {
                             count,
                             KPIT,
                             KPOS,
+                            KVELO,
+                            KPITRATE,
                             minPos,
                             maxPos,
                             ampPos,
+                            AvgPos,
                             minPitch,
                             maxPitch,
-                            ampPitch
+                            ampPitch,
+                            score
                     )
                     .build();
         }

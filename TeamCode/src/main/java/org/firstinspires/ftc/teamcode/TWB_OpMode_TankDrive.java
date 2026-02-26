@@ -65,7 +65,7 @@ public class TWB_OpMode_TankDrive extends OpMode
         joystickS.addNumber(gamepad1.left_stick_y);
 
         // get teleoperated inputs
-        twb.translateDrive(joystickS.getAverage(),6,7);
+        twb.translateDrive(joystickS.getAverage(),8,7);
 
         // Either joystick can turn the robot.  Different speeds.
         twb.turn_teleop(gamepad1.left_stick_x,0.02);

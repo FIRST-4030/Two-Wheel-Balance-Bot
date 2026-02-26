@@ -29,11 +29,11 @@ public class TwoWheelBalanceBot {
     public boolean TELEMETRY = true; // switch for telemetry
 
     // These are the state terms for a two wheel balancing robot
-    public double Kpitch = -0.61; // volts/degree at arm = -90
+    public double Kpitch = -0.57; // volts/degree at arm = -90
     public double KpitchRate = -0.022; // volts/degrees/sec
     // Have had difficulty tuning this term.  Can't tell what changes it makes.
 
-    public double Kpos = 0.009;  // volts/mm For high balancing (unstable) this term is positive
+    public double Kpos = 0.017;  // volts/mm For high balancing (unstable) this term is positive
     public double Kvelo = 0.015;  // volts/mm/sec For high balancing (unstable) this term is positive
     // Larger Kvelo decreases the rocking motion, up to a point, then chatter!
     // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles.
@@ -278,8 +278,8 @@ public class TwoWheelBalanceBot {
             theOpmode.telemetry.addData("Claw Servo", clawServo.getPosition());
         }
 
-        // kill the robot if it pitches over or runs fast
-        if (pitch > 80  || pitch < -80 || linearVelocity > 1500 || linearVelocity < -1500) {
+        // kill the robot if it pitches over too far or runs fast when not asked to
+        if (Math.abs(pitch) > 80  || (Math.abs(linearVelocity) > 1500 && Math.abs(veloTarget) < 50)) {
             theOpmode.requestOpModeStop(); // Stop the opmode
         }
     }

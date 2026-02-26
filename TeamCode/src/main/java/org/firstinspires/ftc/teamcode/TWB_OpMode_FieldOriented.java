@@ -105,7 +105,7 @@ public class TWB_OpMode_FieldOriented extends OpMode
             }
         }
 
-        twb.translateDrive(-speed.getAverage(),6,7);
+        twb.translateDrive(-speed.getAverage(),8,7);
 
         twb.turn_teleop(gamepad1.right_stick_x,0.02);
 
@@ -114,7 +114,10 @@ public class TWB_OpMode_FieldOriented extends OpMode
         twb.claw_teleop();
 
         if (gamepad1.yWasPressed()) {
+            yaw1 = 0.0;
             twb.imuYawReset();
+            // NOT WORKING IF YAW ANGLE IS GREATER THAN 180 OR -180
+
         }
 
         twb.loop();  // call the MAIN CONTROL SYSTEM
