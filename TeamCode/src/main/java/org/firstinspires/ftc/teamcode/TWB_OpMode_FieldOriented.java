@@ -33,7 +33,7 @@ public class TWB_OpMode_FieldOriented extends OpMode
 
         speed = new RunningAverage(5); // initialize size of running average
 
-        twb.TELEMETRY = false;
+        twb.TELEMETRY = true;
 
         datalog = new DatalogFO("FieldOrientlog");
 
@@ -123,7 +123,7 @@ public class TWB_OpMode_FieldOriented extends OpMode
         twb.loop();  // call the MAIN CONTROL SYSTEM
 
         telemetry.addLine(String.format("Yaw Target %.1f ,Current %.1f (degrees)",twb.yawTarget*180/Math.PI,twb.yaw*180/Math.PI));
-        telemetry.addLine(String.format("s Position Target %.1f ,Current %.1f (mm)",twb.posTarget,twb.sOdom));
+        //telemetry.addLine(String.format("s Position Target %.1f ,Current %.1f (mm)",twb.posTarget,twb.sOdom));
         telemetry.update();
 
 //        datalog.yaw.set(twb.yaw*180/Math.PI);

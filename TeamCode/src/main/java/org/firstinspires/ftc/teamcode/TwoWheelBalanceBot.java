@@ -29,14 +29,14 @@ public class TwoWheelBalanceBot {
     public boolean TELEMETRY = true; // switch for telemetry
 
     // These are the state terms for a two wheel balancing robot
-    public double Kpitch = -0.57; // volts/degree at arm = -90
-    public double KpitchRate = -0.022; // volts/degrees/sec
-    // Have had difficulty tuning this term.  Can't tell what changes it makes.
+    public double Kpitch = -0.57; // volts/degree
+    public double KpitchRate = -0.029; // volts/degrees/sec
+    // Have had difficulty tuning KpitchRate manually.  Use DOE opmode
 
-    public double Kpos = 0.017;  // volts/mm For high balancing (unstable) this term is positive
-    public double Kvelo = 0.015;  // volts/mm/sec For high balancing (unstable) this term is positive
-    // Larger Kvelo decreases the rocking motion, up to a point, then chatter!
-    // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles.
+    // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
+    // and positive when the CM is above (unstable)
+    public double Kpos = 0.017;  // volts/mm
+    public double Kvelo = 0.015;  // volts/mm/sec
 
     static final double WHEELBASE = 300; // robot Wheel base (mm)
 
@@ -146,7 +146,6 @@ public class TwoWheelBalanceBot {
      * TWB init loop.  Called repeatedly in initialization.
       */
     public void init_loop() {
-        //theOpmode.telemetry.addData("LOG", LOG);
     }
 
     /**
@@ -361,6 +360,9 @@ public class TwoWheelBalanceBot {
 
         // Update posTarget (mm) Note: this value * 50 = mm per second
         posTarget -= forward * mmPerLoop; // mmPerLoop of 7 results in a gentle speed
+
+        // Update the velocity target (mm/sec). Assuming  0.02 second loop cycles
+        veloTarget = -forward*(mmPerLoop/0.02);
     }
 
     public void imuYawReset() {

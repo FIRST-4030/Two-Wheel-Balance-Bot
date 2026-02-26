@@ -26,7 +26,7 @@ public class TWB_OpMode_DOE extends OpMode {
     // DOE constants.  Modify these for the experiment
     private final double ARMANGLE = -90.0;
     private final double testDuration = 5.0; // seconds per experiment
-    private final double JIGGLEDEG = 10; // Pitch jiggle for each experiment
+    private final double JIGGLEDEG = 9.0; // Pitch jiggle for each experiment
 
     // Modify the Terms in init()
     private Term Kpos;
@@ -59,11 +59,11 @@ public class TWB_OpMode_DOE extends OpMode {
         twb.TELEMETRY = false;
         twb.ClawIsClosed = true; // close the claw
 
-        // MODIFY THESE FOR THE EXPERIMENTS
-        Kpos = new Term(0.014,0.018,3,twb.Kpos);
+        // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
+        Kpos = new Term(0.010,0.018,3,twb.Kpos);
         Kpitch = new Term(-0.60,-0.54,3,twb.Kpitch);
-        Kvelo = new Term(0.014,0.018,3,twb.Kvelo);  // 0.020 breaks bot
-        KpitchRate = new Term(-0.026,-0.020,3,twb.KpitchRate);
+        Kvelo = new Term(0.012,0.018,3,twb.Kvelo);  // 0.020 breaks bot
+        KpitchRate = new Term(-0.029,-0.023,3,twb.KpitchRate);
 
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
