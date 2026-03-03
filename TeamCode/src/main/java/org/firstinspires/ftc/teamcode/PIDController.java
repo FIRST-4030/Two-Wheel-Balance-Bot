@@ -7,6 +7,9 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.util.Range;
 
+/**
+ * PIDController class.  Proportional, Integral, Derivative Controller Class
+ */
 public class PIDController {
     private double kp;  // Proportional gain
     private double ki;  // Integral gain
@@ -16,8 +19,13 @@ public class PIDController {
     private double integral;  // Integral sum
     private double previousError;  // Previous error value
     private long lastTime;  // Last timestamp
-    
-    /* Constructor for PIDController */
+
+    /**
+     * Constructor for PIDController
+     * @param kp
+     * @param ki
+     * @param kd
+     */
     public PIDController(double kp, double ki, double kd) {
         this.kp = kp;
         this.ki = ki;
@@ -36,7 +44,9 @@ public class PIDController {
         return setpoint;
     }
 
-    //    Compute method with single feedback parameter //
+    /**
+     * Compute method for PID controller.  Call repeatedly
+     */
     public double compute(double processVariable) {
         long now = System.currentTimeMillis();
         double timeChange = (now - lastTime) / 1000.0;  // Convert milliseconds to seconds
@@ -52,10 +62,9 @@ public class PIDController {
 
         return output;
     }
-    //
 
     /* Compute method with double parameters (feedback=processVariable and rate=derivative) 
-       IMU ususally returns angular rates, which can be used rather than deriving the derivative */
+       IMU usually returns angular rates, which can be used rather than deriving the derivative */
     public double compute(double processVariable, double derivative) {
         double output;
         long now = System.currentTimeMillis();
@@ -72,17 +81,6 @@ public class PIDController {
         } else {
             output = -1.0;
         }
-
-        // NOTE: SPECIAL PITCH PID METHOD 
-        // kp is squared (0.0222 IS BECAUSE ITS USING DEGREES)  AND
-        // step function proportion  AND
-        // BLACK = 0.04
-        // DERIVATIVE SIGN IS REVERESED IN THIS METHOD
-        // FOR BLACK:
-        //double output = kp * 0.0222 * error * error * Math.signum(error) + 0.015*Math.signum(error) + ki * integral - kd * derivative;
-        //double output = kp * error + ki * integral - kd * derivative;
-        // FOR BLUE:
-        //double output = kp * Math.pow(Math.abs(error),0.5)*Math.signum(error) + ki * integral - kd * derivative;
 
         previousError = error; 
         lastTime = now;

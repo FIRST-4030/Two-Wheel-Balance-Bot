@@ -8,6 +8,9 @@ import com.qualcomm.robotcore.util.RobotLog;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * element class.  Used by the PiecewiseFunction class.
+ */
 class element {
     private double x, y;
     
@@ -34,7 +37,7 @@ class element {
 }
 
 /**
- * Function that provides a piecewise math function connecting the dots between an arbitrary number of points.
+ * PiecewiseFunction class that provides a piecewise math function connecting the dots between an arbitrary number of points.
  * Various options include support for step functions, the ability to chose between high and low defaults, and limiting of inputs.
  */
 public class PiecewiseFunction {
