@@ -75,7 +75,7 @@ public class TwoWheelBalanceBot {
     public double pitchVolts = 0.0;
 
     //Handles the arm control, and adjusting the arm for the pitch of the robot
-    final public TWBArmServo theArm;
+    public TWBArmServo theArm;
 
     public DcMotor leftDrive;
     public DcMotor rightDrive;
@@ -278,7 +278,7 @@ public class TwoWheelBalanceBot {
         }
 
         // kill the robot if it pitches over too far or runs fast when not asked to
-        if (Math.abs(pitch) > 80  || (Math.abs(linearVelocity) > 1500 && Math.abs(veloTarget) < 50)) {
+        if (Math.abs(pitch) > 90  || (Math.abs(linearVelocity) > 1500 && Math.abs(veloTarget) < 50)) {
             theOpmode.requestOpModeStop(); // Stop the opmode
         }
     }
@@ -304,32 +304,25 @@ public class TwoWheelBalanceBot {
     }
 
     /**
-     * TWB method to provide user control of the arm.
+     * TWB method that rotates the arm.
+     * @param velocityScalar velocity scalar from -1 to 1
      */
-    public void arm_teleop() {
+    public void arm_teleop(double velocityScalar) {
         //Increment target Arm angle
-        if (theOpmode.gamepad1.right_stick_y > 0.3) theArm.setArmAngle(theArm.getAngle() + 2.0);
-        else if (theOpmode.gamepad1.right_stick_y < -0.3) theArm.setArmAngle(theArm.getAngle() - 2.0);
-
-        //Set arm angle for cargo deposit
-        if (theOpmode.gamepad1.left_bumper) theArm.setArmAngle(-90.0);
-
-        //Set arm angle to cargo collection
-        if (theOpmode.gamepad1.right_trigger_pressed) theArm.setArmAngle(-150.0);
-
-        //Sets arm to vertical. Increment and hold are modified to properly represent the operative state
-        if (theOpmode.gamepad1.left_trigger > 0.5) theArm.setArmAngle(0.0);
+        double newAngle = theArm.getAngle() +  velocityScalar;
+        theArm.setArmAngle(newAngle);
     }
 
     /**
      * TWB method to provide user control of the claw.
+     * @param toggle boolean to switch the claw
      */
-    public void claw_teleop() {
+    public void claw_teleop(boolean toggle) {
         //Controls the claw boolean
-        if (theOpmode.gamepad1.rightBumperWasPressed()) {
+        if (toggle) {
             if (ClawIsClosed)  ClawIsClosed = false; // open
             else { // close
-                theArm.setArmAngle(theArm.getAngle() + 15.0);  // raise the arm a bit
+                theArm.setArmAngle(theArm.getAngle() + 15.0);  // raise the arm a bit to avoid runaway
                 ClawIsClosed = true;
             }
         }
@@ -347,11 +340,10 @@ public class TwoWheelBalanceBot {
     }
 
     /**
-     * TWB method to provide user control of moving the robot with joystick, controlling pitch.
+     * TWB method translates the robot at the current angle by setting Position, Velocity and Pitch Targets.
      * @param forward value from -1 to 1 that is the forward or backward amount
-     * @param degPerLoop is robot pitch degrees per loop, multiplied by forward (6 is good)
-     * @param mmPerLoop is robot translation in mm per loop, multiplied by forward (7 is good)
-     *                  degPerLoop and mmPerLoop should be close in value.
+     * @param degPerLoop robot pitch degrees per loop, multiplied by forward (6 is good)
+     * @param mmPerLoop robot translation in mm per loop, multiplied by forward (7 is good)
      */
     public void translateDrive(double forward, double mmPerLoop, double degPerLoop) {
 

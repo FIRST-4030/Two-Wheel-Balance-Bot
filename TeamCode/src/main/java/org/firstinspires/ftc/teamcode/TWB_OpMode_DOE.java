@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -16,8 +17,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * A datalog records the min/max of position and pitch for each test, with the
  * expectation that the lowest mix/max are the most stable terms.
  */
-//@Disabled
 @TeleOp(name="TWB Design of Experiments")
+@Disabled
 public class TWB_OpMode_DOE extends OpMode {
     // Declare OpMode members.
     private TwoWheelBalanceBot twb;
@@ -108,10 +109,10 @@ public class TWB_OpMode_DOE extends OpMode {
         // give robot a jiggle at the beginning of each period to get a wave
         // while using the original K terms so that the jiggle is consistent
         if(moveTimer.seconds() < 0.1) {
-            twb.Kpos = Kpos.orig;
-            twb.Kpitch = Kpitch.orig;
-            twb.Kvelo = Kvelo.orig;
-            twb.KpitchRate = KpitchRate.orig;
+            twb.Kpos = Kpos.getOriginal();
+            twb.Kpitch = Kpitch.getOriginal();
+            twb.Kvelo = Kvelo.getOriginal();
+            twb.KpitchRate = KpitchRate.getOriginal();
             twb.autoPitchTarget = JIGGLEDEG; // add JIGGLEDEG degrees initially to jiggle
 
         } else if(moveTimer.seconds() <= testDuration) {

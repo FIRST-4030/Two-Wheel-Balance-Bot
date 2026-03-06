@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -13,6 +14,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * @date 11/13/2025
  */
 @TeleOp(name = "ServoTester", group="Util")
+@Disabled
 public class ServoTester extends OpMode {
 
     String DEVICE_NAME = "arm_servo"; // can also be used for the claw servo

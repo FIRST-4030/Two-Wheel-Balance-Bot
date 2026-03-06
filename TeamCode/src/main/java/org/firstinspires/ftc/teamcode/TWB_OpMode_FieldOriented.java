@@ -107,11 +107,17 @@ public class TWB_OpMode_FieldOriented extends OpMode
 
         twb.translateDrive(-speed.getAverage(),8,7);
 
-        twb.turn_teleop(gamepad1.right_stick_x,0.02);
+        twb.turn_teleop(gamepad1.right_stick_x,0.02); // also can turn this way
 
-        twb.arm_teleop();
+        twb.arm_teleop(gamepad1.right_stick_y);
 
-        twb.claw_teleop();
+        //Set arm angle straight up
+        if (gamepad1.left_bumper) twb.theArm.setArmAngle(0.0);
+
+        //Set arm angle to cargo collection
+        if (gamepad1.right_trigger_pressed) twb.theArm.setArmAngle(-150.0);
+
+        twb.claw_teleop(gamepad1.rightBumperWasPressed());
 
         if (gamepad1.yWasPressed()) {
             yaw1 = 0.0;

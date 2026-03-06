@@ -26,7 +26,7 @@ public class TWB_OpMode_TankDrive extends OpMode
     public void init() {
         twb = new TwoWheelBalanceBot(hardwareMap,this); // Create twb object
 
-        joystickS = new RunningAverage(5); // initialize size of running average
+        joystickS = new RunningAverage(7); // initialize size of running average
 
         twb.init();
 
@@ -62,18 +62,25 @@ public class TWB_OpMode_TankDrive extends OpMode
     public void loop() {
 
         // get running average of the joystick to smooth aggressive inputs
-        joystickS.addNumber(gamepad1.left_stick_y);
+        // The left trigger is a speed booster
+        joystickS.addNumber(gamepad1.left_stick_y * (1 + gamepad1.left_trigger));
 
-        // get teleoperated inputs
+        // Translate the robot
         twb.translateDrive(joystickS.getAverage(),8,7);
 
         // Either joystick can turn the robot.  Different speeds.
         twb.turn_teleop(gamepad1.left_stick_x,0.02);
         twb.turn_teleop(gamepad1.right_stick_x,0.01);
 
-        twb.arm_teleop();
+        twb.arm_teleop(gamepad1.right_stick_y);
 
-        twb.claw_teleop();
+        //Set arm angle straight up
+        if (gamepad1.left_bumper) twb.theArm.setArmAngle(0.0);
+
+        //Set arm angle to cargo collection
+        if (gamepad1.right_trigger_pressed) twb.theArm.setArmAngle(-150.0);
+
+        twb.claw_teleop(gamepad1.rightBumperWasPressed());
 
         twb.loop();  // call the MAIN CONTROL SYSTEM
 

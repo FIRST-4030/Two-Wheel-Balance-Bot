@@ -1,14 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
 /**
- * Term class is used to save the Design of Experiment Term values
+ * Term class is used to store and process the Design of Experiment Term values
  */
 public class Term {
-    public double low; // Lowest experiment value
-    public double high; // Highest experiment values
-    public int n;  // Number of values from Low to High.  Minimum is 2
+    private double low; // Lowest experiment value
+    private double high; // Highest experiment values
+    private int n;  // Number of values from Low to High.  Minimum is 2
     private double increment; // Increment value (calculated)
-    public double orig; // Place to store the original term value during the experiments
+    private double orig; // Place to store the original term value during the experiments
     public double current; // Place to store the current term value during the experiments
     public double min;  // Place to store a minimum response for a degree of freedom
     public double max; // Place to store a minimum response for a degree of freedom
@@ -24,8 +24,9 @@ public class Term {
         resetMinMax();
     }
 
-    //public double getIncrement() {return this.increment;}
     public int getN() {return this.n;}
+
+    public double getOriginal() {return this.orig;}
 
     public void next() {
         double check = this.current + this.increment;
@@ -33,7 +34,6 @@ public class Term {
         else this.current = check;
     }
 
-    //public void setOriginal() {this.current = this.orig;}
     public void resetMinMax() {
         this.min = 10000.0;
         this.max = -10000.0;
