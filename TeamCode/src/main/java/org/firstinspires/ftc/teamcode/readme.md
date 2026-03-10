@@ -1,12 +1,13 @@
-## TeamCode Module
+## TeamCode Module for Two Wheel Balancing Robot
 
 Welcome!
 
-This module, TeamCode, is the place where you will write/paste the code for your team's
-robot controller App. This module is currently empty (a clean slate) but the
-process for adding OpModes is straightforward.
+This module, TeamCode, is the place where code for the Two Wheel Balancing robot
+controller App. 
 
-## Creating your own OpModes
+## OpModes
+
+The Two Wheel Balancing Robot OpModes are in the opmodes folder.
 
 The easiest way to create your own OpMode is to copy a Sample OpMode and make it your own.
 

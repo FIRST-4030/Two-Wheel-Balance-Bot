@@ -1,11 +1,14 @@
 /* This Iterative Autonomous OpMode is for a Two Wheel Balancing Robot with Arm
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.TWBMoves;
+import org.firstinspires.ftc.teamcode.TwoWheelBalanceBot;
 
 /**
  * This Iterative Autonomous OpMode is for a Two Wheel Balancing Robot with Arm.

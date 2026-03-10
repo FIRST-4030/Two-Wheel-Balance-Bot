@@ -1,12 +1,16 @@
 /* This Iterative Tele OpMode is for a Two Wheel Balancing Robot With Arm
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.annotation.SuppressLint;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.Datalogger;
+import org.firstinspires.ftc.teamcode.RunningAverage;
+import org.firstinspires.ftc.teamcode.TwoWheelBalanceBot;
 
 /**
  * Iterative Teleoperated OpMode is for a Two Wheel Balancing Robot with Arm,

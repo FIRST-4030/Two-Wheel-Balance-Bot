@@ -1,0 +1,189 @@
+package org.firstinspires.ftc.teamcode;
+
+import android.annotation.SuppressLint;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
+
+/**
+ * Blue Wheeled Two Wheel Balancing Robot Class, with Arm.
+ *  All of the robot unique constant are (should be) defined here
+ */
+public class BlueWheelTWB {
+    private final TwoWheelBalanceController TWBController;
+
+    private final Servo clawServo;
+    private boolean ClawIsClosed = false; //Claw boolean
+    private final double CLAWCLOSE = 1.0; // servo value for closed claw
+    private final double CLAWOPEN = 0.3;  // servo value for open claw
+
+    //Handles the arm control, and adjusting the arm for the pitch of the robot
+    private final ArmServo theArm;
+
+
+    // PieceWise linear curve member for pitch angle vs arm angle
+    final private PiecewiseFunction pitchAngVec = new PiecewiseFunction();
+    /**
+     * TWB Constructor.  Call once in initialization.
+      */
+    public BlueWheelTWB(HardwareMap hardwareMap) {
+
+        // The distance between the blue wheels is 300 mm
+        // REVSPUR40PPR = 1120; // REV Core Hex Motor Pulses per Revolution at output shaft
+        // COUNTS_PER_REV    = 2048.0 ;    // CUI ATM103 Encoder at most PPR
+        // WHEELDIA = 203.0; // 8 inch wheel diameter (mm)
+        // TICKSPERMM = (1120)/(203*Math.PI) = 1.75619; // REV SPUR 40:1, 8in wheels
+        // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
+        TWBController = new TwoWheelBalanceController(hardwareMap, 300.0, 203.0, 1.75619,
+                0.45, 0.12, 0.05);
+
+        VoltageSensor battery = hardwareMap.voltageSensor.get("Control Hub");
+        // Get the current voltage, so that balance control is more consistent
+        TWBController.setCurrentVoltage(battery.getVoltage());
+
+        // These are the state terms for a two wheel balancing robot
+        // Tune these using the DOE (Design of Experiments) opmode.
+        // Kpitch = -0.57; // volts/degree
+        // KpitchRate = -0.029; // volts/degrees/sec
+
+        // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
+        // and positive when the CM is above (unstable)
+        // Kpos = 0.017;  // volts/mm
+        // Kvelo = 0.015;  // volts/mm/sec
+        TWBController.setBalanceTerms(0.017,0.015,-0.57,-0.029);
+
+        // Initialize the arm class
+        // Determine servo values for two angle using the ServoTester opmode
+        theArm = new ArmServo(hardwareMap, "arm_servo", 0.4, 90, 0.6, -90, 30);
+
+        /*
+         * Arm Angle (degrees) vs. robot Pitch: (Pitch setpoint is a function of arm angle)
+         * This keeps the Center of Gravity (CG) of Arm + Robot Body over the Robot Wheel axis.
+         * The computation has been done externally (using OpenSCAD Mass Properties Simulator program)
+         * and saved as a lookup Piecewise curve.
+         */
+        pitchAngVec.debug = false;
+        pitchAngVec.setClampLimits(false);
+        pitchAngVec.addElement(-160,6.26952); // new global arm angle is -153.73"
+        pitchAngVec.addElement(-140,9.09704); // new global arm angle is -130.903"
+        pitchAngVec.addElement(-120,10.459); // new global arm angle is -109.541"
+        pitchAngVec.addElement(-100,10.4217); // new global arm angle is -89.5783"
+        pitchAngVec.addElement(-80,9.22811); // new global arm angle is -70.7719"
+        pitchAngVec.addElement(-60,7.16788); // new global arm angle is -52.8321"
+        pitchAngVec.addElement(-40,4.51794); // new global arm angle is -35.4821"
+        pitchAngVec.addElement(-20,1.52861); // new global arm angle is -18.4714"
+        pitchAngVec.addElement(0,-1.57038); // new global arm angle is -1.57038"
+        pitchAngVec.addElement(20,-4.55667); // new global arm angle is 15.4433"
+        pitchAngVec.addElement(40,-7.20035); // new global arm angle is 32.7996"
+        pitchAngVec.addElement(60,-9.25074); // new global arm angle is 50.7493"
+        pitchAngVec.addElement(80,-10.4305); // new global arm angle is 69.5695"
+        pitchAngVec.addElement(100,-10.4503); // new global arm angle is 89.5497"
+        pitchAngVec.addElement(120,-9.06833); // new global arm angle is 110.932"
+        pitchAngVec.addElement(140,-6.22194); // new global arm angle is 133.778"
+        pitchAngVec.addElement(160,-2.205); // new global arm angle is 157.795"
+
+        clawServo = hardwareMap.get(Servo.class, "clawServo");
+
+    }
+
+    /**
+     * Set Arm Angle method.
+      */
+    public void setArmAngle(double armAngle) { theArm.setArmAngle(armAngle);  }
+
+    /**
+     *  TWB automatic self righting method.  Call repeatedly in initialization.
+     */
+    public void auto_right_loop() {
+        // Check which way the robot is leaning and rotate the arm so that it will self-right
+        if (TWBController.getPitch() > 0.0) theArm.setArmAngle(140.0);
+        else theArm.setArmAngle(-150.0);
+
+        theArm.updateArm(TWBController.getDeltaTime()); // This will make the arm move
+    }
+
+    /**
+     * TWB Main Loop method.  Call repeatedly while running. Contains balance control logic.
+     * Teleoperated inputs are removed from this method, so it can be called in autonomous.
+      */
+    @SuppressLint("DefaultLocale")
+    public void loop(OpMode theOpmode) {
+
+        TWBController.setArmPitchTarget(pitchAngVec.getY(theArm.getAngle()));
+
+        TWBController.loop(theOpmode);
+
+        theArm.updateArm(TWBController.getDeltaTime()); // This will make the arm move
+
+        if (ClawIsClosed) clawServo.setPosition(CLAWCLOSE); // closed value (0.98 for blocks)
+        else clawServo.setPosition(CLAWOPEN); // open value (WAS 0.35)
+
+    }
+
+    /**
+     * TWB method that rotates the arm.
+     * @param velocityScalar velocity scalar from -1 to 1
+     */
+    public void arm_teleop(double velocityScalar) {
+        //Increment target Arm angle
+        double newAngle = theArm.getAngle() +  velocityScalar;
+        theArm.setArmAngle(newAngle);
+    }
+
+    /**
+     * TWB method to provide user control of the claw.
+     * @param toggle boolean to switch the claw
+     */
+    public void claw_teleop(boolean toggle) {
+        //Controls the claw boolean
+        if (toggle) {
+            if (ClawIsClosed)  ClawIsClosed = false; // open
+            else { // close
+                theArm.setArmAngle(theArm.getAngle() + 15.0);  // raise the arm a bit to avoid runaway
+                ClawIsClosed = true;
+            }
+        }
+    }
+
+    /**
+     * TWB method to provide user control of turning the robot.
+     * @param deltaAngle a value from -1 to 1 in radians
+     */
+    public void turn_teleop(double deltaAngle) {
+        // Robot Turning:
+        // The right joystick turns the robot by adjusting the yaw PID turn setpoint
+        TWBController.setYawTarget(TWBController.getYawTarget() - deltaAngle );
+    }
+
+    /**
+     * TWB method translates the robot at the current angle by setting Position, Velocity and Pitch Targets.
+     * @param forward value from -1 to 1 that is the forward or backward amount
+     * @param degPerLoop robot pitch degrees per loop, multiplied by forward (6 is good)
+     * @param mmPerLoop robot translation in mm per loop, multiplied by forward (7 is good)
+     */
+    public void translateDrive(double forward, double mmPerLoop, double degPerLoop) {
+
+        // add some pitch to get it moving
+        TWBController.setAutoPitchTarget(forward * degPerLoop); // degPerLoop of 6 results in gentle movement
+
+        // Update posTarget (mm) Note: this value * 50 = mm per second
+        // mmPerLoop of 7 results in a gentle speed
+        TWBController.setPosTarget( TWBController.getPosTarget() - forward * mmPerLoop );
+
+        // Update the velocity target (mm/sec)
+        TWBController.setVeloTarget( -forward*(mmPerLoop/TWBController.getDeltaTime()));
+    }
+    @SuppressLint("DefaultLocale")
+
+    public void writeTelemetry(OpMode om) {
+        om.telemetry.addLine(String.format("s Position Target %.1f ,Current %.1f (mm)",
+                TWBController.getPosTarget(),TWBController.getPosition()));
+        om.telemetry.addLine(String.format("s Velocity Target %.1f ,Current %.1f (mm/sec)",
+                TWBController.getVeloTarget(),TWBController.getVelocity()));
+        om.telemetry.addLine(String.format("Pitch Target %.1f ,Current %.1f (degrees)",
+                TWBController.getPitchTarget(),TWBController.getPitch()));
+    }
+
+}

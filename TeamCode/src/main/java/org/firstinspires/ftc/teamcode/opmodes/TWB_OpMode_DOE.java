@@ -1,7 +1,7 @@
 /* This Iterative Autonomous OpMode is for a Two Wheel Balancing Robot with Arm
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.annotation.SuppressLint;
 
@@ -9,6 +9,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.DatalogTWB;
+import org.firstinspires.ftc.teamcode.Datalogger;
+import org.firstinspires.ftc.teamcode.RunningAverage;
+import org.firstinspires.ftc.teamcode.Term;
+import org.firstinspires.ftc.teamcode.TwoWheelBalanceBot;
 
 /**
  * This Iterative Design of Experiments OpMode is for a Two Wheel Balancing Robot with Arm.

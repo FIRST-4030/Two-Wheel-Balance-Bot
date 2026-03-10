@@ -1,21 +1,23 @@
-/* This Iterative Tele OpMode is for a Two Wheel Balancing Robot With Arm
- */
+package org.firstinspires.ftc.teamcode.opmodes;
 
-package org.firstinspires.ftc.teamcode;
+import android.annotation.SuppressLint;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.BlueWheelTWB;
+import org.firstinspires.ftc.teamcode.RunningAverage;
+
 /**
  * Iterative Tele OpMode is for driving a Two Wheel Balancing Robot with Arm
- * in TANK mode.
+ * in regular mode.
  */
-@TeleOp(name="TWB Robot Oriented drive mode")
+@TeleOp(name="Blue TWB Tele")
 //@Disabled
-public class TWB_OpMode_TankDrive extends OpMode
+public class Blue_Tele extends OpMode
 {
     // Declare OpMode members.
-    private TwoWheelBalanceBot twb;
+    private BlueWheelTWB twb;
 
     private RunningAverage joystickS; // to smooth aggressive joystick inputs
 
@@ -24,11 +26,9 @@ public class TWB_OpMode_TankDrive extends OpMode
      */
     @Override
     public void init() {
-        twb = new TwoWheelBalanceBot(hardwareMap,this); // Create twb object
+        twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
         joystickS = new RunningAverage(7); // initialize size of running average
-
-        twb.init();
 
     }
 
@@ -37,10 +37,9 @@ public class TWB_OpMode_TankDrive extends OpMode
      */
     @Override
     public void init_loop() {
-        telemetry.addData("TWO WHEEL BOT", "INIT LOOP");
+        telemetry.addData("BLUE TWO WHEEL BOT", "INIT LOOP");
 
-        twb.init_loop(); // provides user a chance to change the K terms
-
+        telemetry.addData("AUTO-RIGHT", "ACTIVE");
         twb.auto_right_loop(); // gets the robot into a position to self right
 
         telemetry.update();
@@ -51,8 +50,7 @@ public class TWB_OpMode_TankDrive extends OpMode
      */
     @Override
     public void start() {
-
-        twb.start(-90.0); // gets the latest state of the robot before running
+        twb.setArmAngle(-90.0); // gets the latest state of the robot before running
     }
 
     /**
@@ -69,21 +67,22 @@ public class TWB_OpMode_TankDrive extends OpMode
         twb.translateDrive(joystickS.getAverage(),8,7);
 
         // Either joystick can turn the robot.  Different speeds.
-        twb.turn_teleop(gamepad1.left_stick_x,0.02);
-        twb.turn_teleop(gamepad1.right_stick_x,0.01);
+        twb.turn_teleop(gamepad1.left_stick_x * 0.02);
+        twb.turn_teleop(gamepad1.right_stick_x * 0.01);
 
         twb.arm_teleop(gamepad1.right_stick_y);
 
         //Set arm angle straight up
-        if (gamepad1.left_bumper) twb.theArm.setArmAngle(0.0);
+        if (gamepad1.left_bumper) twb.setArmAngle(0.0);
 
         //Set arm angle to cargo collection
-        if (gamepad1.right_trigger_pressed) twb.theArm.setArmAngle(-150.0);
+        if (gamepad1.right_trigger_pressed) twb.setArmAngle(-150.0);
 
         twb.claw_teleop(gamepad1.rightBumperWasPressed());
 
-        twb.loop();  // call the MAIN CONTROL SYSTEM
+        twb.loop(this);  // call the MAIN CONTROL SYSTEM
 
+        twb.writeTelemetry(this);
         telemetry.update();
     }
 }

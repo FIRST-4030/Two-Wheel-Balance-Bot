@@ -21,10 +21,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 /**
  * Two Wheel Balancing Robot Class, with Arm.
- * This class has Many members (variables)!
  */
 public class TwoWheelBalanceBot {
-    final private OpMode theOpmode; // Set during construction.  Enables using telemetry and gamepad
+    private final OpMode theOpmode; // Set during construction.  Enables using telemetry and gamepad
 
     public boolean TELEMETRY = true; // switch for telemetry
 
@@ -38,59 +37,55 @@ public class TwoWheelBalanceBot {
     public double Kpos = 0.017;  // volts/mm
     public double Kvelo = 0.015;  // volts/mm/sec
 
-    static final double WHEELBASE = 300; // robot Wheel base (mm)
+    private static final double WHEELBASE = 300; // robot Wheel base (mm)
 
-    static final double REVSPUR40PPR = 1120; // REV Core Hex Motor Pulses per Revolution at output shaft
+    private static final double REVSPUR40PPR = 1120; // REV Core Hex Motor Pulses per Revolution at output shaft
     //static final double     COUNTS_PER_REV    = 2048.0 ;    // CUI ATM103 Encoder at most PPR
-    static final double WHEELDIA = 203.0; // 8 inch wheel diameter (mm)
+    private static final double WHEELDIA = 203.0; // 8 inch wheel diameter (mm)
 
-    static final double TICKSPERMM = (REVSPUR40PPR)/(WHEELDIA*Math.PI); // REV SPUR 40:1, 8in wheels
+    private static final double TICKSPERMM = (REVSPUR40PPR)/(WHEELDIA*Math.PI); // REV SPUR 40:1, 8in wheels
 
     // YAW PID
-    PIDController yawPID = new PIDController(0.45, 0.14, 0.06); // kp 0.45, ki 0.12, kd 0.05
+    private final PIDController yawPID = new PIDController(0.45, 0.14, 0.06); // kp 0.45, ki 0.12, kd 0.05
 
     public double posTarget = 0.0;
     public double veloTarget = 0.0;
     public double autoPitchTarget = 0; // used to set pitch from an auto routine
-    double pitchTarget = 0;
+    public double pitchTarget = 0;
 
-    double pitch = 0; // degrees, value got from imu
-    double pitchError = 0;
+    public double pitch = 0; // degrees, value got from imu
 
     public double yawTarget = 0.0; // from the user joystick in teleop or from auto routines
     public double yaw = 0;
-    double priorYaw = 0;
-    double rawYaw, rawPriorYaw = 0;
-    double yawPower;
+    private double priorYaw = 0;
+    private double rawPriorYaw = 0;
 
     public boolean ClawIsClosed = false; //Claw boolean
 
-    final private IMU imu;
+    private final IMU imu;
 
     private YawPitchRollAngles orientation;   // part of FIRST navigation classes
 
-    final private VoltageSensor battery;
-    double currentVoltage = 12.0; // This value is overridden with a measured value in start()
+    private final VoltageSensor battery;
+    private double currentVoltage = 12.0; // This value is overridden with a measured value in start()
     public double positionVolts = 0.0;
     public double pitchVolts = 0.0;
 
     //Handles the arm control, and adjusting the arm for the pitch of the robot
     public TWBArmServo theArm;
 
-    public DcMotor leftDrive;
-    public DcMotor rightDrive;
+    private final DcMotor leftDrive;
+    private final DcMotor rightDrive;
 
-    TWBOdometry odometry; // two wheel odometry object with running average
-    int i = 0;  // loop counter, used with data logging
+    private final TWBOdometry odometry; // two wheel odometry object with running average
 
-    ElapsedTime runtime = new ElapsedTime(); // Timer used to check loop times
+    private final ElapsedTime runtime = new ElapsedTime(); // Timer used to check loop times
     private final RunningAverage deltaTimeRA = new RunningAverage(8);
     private double currentTime;
 
     public double sOdom; // Current robot position from odometry
-    double theta;  // used with odometry
 
-    double armPitchTarget = 0; // degrees
+    private double armPitchTarget = 0; // degrees
 
     public Servo clawServo;
 
@@ -207,8 +202,6 @@ public class TwoWheelBalanceBot {
 
         AngularVelocity angularVelocity;  // part of FIRST navigation classes
 
-        i++;  // index the loop counter
-
         // compute a loop time.  Using running average to smooth values
         double lastTime = currentTime;
         currentTime = runtime.seconds();
@@ -228,7 +221,6 @@ public class TwoWheelBalanceBot {
         odometry.update(leftTicks / TICKSPERMM, rightTicks / TICKSPERMM, pitch, deltaTime);
         double linearVelocity = odometry.getAvgLinearVelocity();
         sOdom = odometry.getS();
-        theta = odometry.getTheta(); // should be the same value as imu yaw
 
         // The robot pitch target is determined by the angle of the arm.
         armPitchTarget = theArm.updateArm(deltaTime); // update arm position (this makes it move)
@@ -239,14 +231,14 @@ public class TwoWheelBalanceBot {
         positionVolts = Kvelo * veloError + Kpos * posError;
 
         pitchTarget = armPitchTarget + autoPitchTarget;
-        pitchError = pitch - pitchTarget;
+        double pitchError = pitch - pitchTarget;
 
         pitchVolts = Kpitch * pitchError + KpitchRate * pitchRATE;
         double totalPowerVolts = pitchVolts + positionVolts;
 
         // The following controls the turn (yaw) of the robot
         // getYaw always returns value from -2*PI to 2*PI
-        rawYaw = orientation.getYaw(AngleUnit.RADIANS);
+        double rawYaw = orientation.getYaw(AngleUnit.RADIANS);
         // The code below makes "yaw" a continuous value TO DO: MAKE THIS A METHOD
         double deltaYaw = rawYaw - rawPriorYaw;
         rawPriorYaw = rawYaw;
@@ -256,7 +248,7 @@ public class TwoWheelBalanceBot {
         priorYaw = yaw;
 
         yawPID.setSetpoint(yawTarget);
-        yawPower = yawPID.compute(yaw);
+        double yawPower = yawPID.compute(yaw);
 
         // limit the total volts
         if (totalPowerVolts > 14) totalPowerVolts = 14;
