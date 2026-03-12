@@ -186,9 +186,10 @@ public class TWB_OpMode_DOE extends OpMode {
 
         twb.loop();  // CALL MAIN TWB CONTROL SYSTEM
 
-        // This datalogging should only be needed for the initial debugging of the DOE
+        // datalogging of every loop is for the initial debugging of the DOE, when to
+        // look for min/max after the jiggle
         datalogTWB.logPosPitch(twb.sOdom, twb.posTarget, twb.pitch, twb.pitchTarget,
-                twb.positionVolts,twb.pitchVolts); // for datalog every loop cycle
+                twb.positionVolts,twb.pitchVolts,0); // for datalog every loop cycle
         datalogTWB.writeLineTWB();
 
         telemetry.addLine(String.format("EXPERIMENT %d ,OF TOTAL %d",count, NEXPERIMENTS));

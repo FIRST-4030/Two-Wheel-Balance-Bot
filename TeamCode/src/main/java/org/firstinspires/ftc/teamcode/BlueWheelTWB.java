@@ -22,9 +22,10 @@ public class BlueWheelTWB {
     //Handles the arm control, and adjusting the arm for the pitch of the robot
     private final ArmServo theArm;
 
-
     // PieceWise linear curve member for pitch angle vs arm angle
     final private PiecewiseFunction pitchAngVec = new PiecewiseFunction();
+    private DatalogTWB datalogTWB; // datalog for full recording
+
     /**
      * TWB Constructor.  Call once in initialization.
       */
@@ -37,7 +38,7 @@ public class BlueWheelTWB {
         // TICKSPERMM = (1120)/(203*Math.PI) = 1.75619; // REV SPUR 40:1, 8in wheels
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
         TWBController = new TwoWheelBalanceController(hardwareMap, 300.0, 203.0, 1.75619,
-                0.45, 0.12, 0.05);
+                0.45, 0.0, 0.05);
 
         VoltageSensor battery = hardwareMap.voltageSensor.get("Control Hub");
         // Get the current voltage, so that balance control is more consistent
@@ -56,7 +57,8 @@ public class BlueWheelTWB {
 
         // Initialize the arm class
         // Determine servo values for two angle using the ServoTester opmode
-        theArm = new ArmServo(hardwareMap, "arm_servo", 0.4, 90, 0.6, -90, 30);
+        theArm = new ArmServo(hardwareMap, "arm_servo", 0.25, 90, 0.68, -90, 30);
+        theArm.setLimits(-140.0, 125.0); // physical limits to keep from breaking things
 
         /*
          * Arm Angle (degrees) vs. robot Pitch: (Pitch setpoint is a function of arm angle)
@@ -86,6 +88,8 @@ public class BlueWheelTWB {
 
         clawServo = hardwareMap.get(Servo.class, "clawServo");
 
+        datalogTWB = new DatalogTWB();
+        datalogTWB.init("BlueLog");
     }
 
     /**
@@ -120,16 +124,23 @@ public class BlueWheelTWB {
         if (ClawIsClosed) clawServo.setPosition(CLAWCLOSE); // closed value (0.98 for blocks)
         else clawServo.setPosition(CLAWOPEN); // open value (WAS 0.35)
 
+        datalogTWB.logPosPitch(TWBController.getPosition(), TWBController.getPosTarget(),
+                TWBController.getPitch(), TWBController.getPitchTarget(),
+                TWBController.getPositionVolts(),TWBController.getPitchVolts(),
+                TWBController.getDeltaTime());
+        datalogTWB.writeLineTWB();
     }
 
     /**
-     * TWB method that rotates the arm.
+     * TWB method that rotates the arm, if the scaler is not 0
      * @param velocityScalar velocity scalar from -1 to 1
      */
     public void arm_teleop(double velocityScalar) {
-        //Increment target Arm angle
-        double newAngle = theArm.getAngle() +  velocityScalar;
-        theArm.setArmAngle(newAngle);
+        if (Math.abs(velocityScalar) > 0.02 ) {
+            //Increment target Arm angle
+            double newAngle = theArm.getAngle() +  velocityScalar;
+            theArm.setArmAngle(newAngle);
+        }
     }
 
     /**
@@ -176,7 +187,6 @@ public class BlueWheelTWB {
         TWBController.setVeloTarget( -forward*(mmPerLoop/TWBController.getDeltaTime()));
     }
     @SuppressLint("DefaultLocale")
-
     public void writeTelemetry(OpMode om) {
         om.telemetry.addLine(String.format("s Position Target %.1f ,Current %.1f (mm)",
                 TWBController.getPosTarget(),TWBController.getPosition()));
@@ -184,6 +194,7 @@ public class BlueWheelTWB {
                 TWBController.getVeloTarget(),TWBController.getVelocity()));
         om.telemetry.addLine(String.format("Pitch Target %.1f ,Current %.1f (degrees)",
                 TWBController.getPitchTarget(),TWBController.getPitch()));
-    }
+        om.telemetry.addLine(String.format("Arm Angle Target %.1f ,Current %.1f (degrees)",
+                theArm.getTargetAngle(),theArm.getAngle()));}
 
 }

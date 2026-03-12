@@ -58,7 +58,6 @@ public class TwoWheelBalanceController {
     private double rawPriorYaw = 0;
 
     private final IMU imu;
-
     private YawPitchRollAngles orientation;   // part of FIRST navigation classes
 
     private double currentVoltage = 12.0; // This value is overridden with a measured value in start()
@@ -66,9 +65,12 @@ public class TwoWheelBalanceController {
     private double pitchVolts = 0.0;
 
     private final ElapsedTime runtime = new ElapsedTime(); // Timer used to check loop times
-    private final RunningAverage deltaTimeRA = new RunningAverage(8);
+    // The variables below are to try to get a consistent delta time for the controller.
+    // Not sure how well this works. Don't know how to make it better without different runtime env.
+    private final RunningAverage deltaTimeRA = new RunningAverage(6);
     private double currentTime;
-    private double deltaTime = 0.04; // initialize
+    private double lastTime;
+    private double deltaTime = 0.04; // initialize, replaced by a running average
 
     /**
      * TWB Constructor.  Call once in initialization.
@@ -83,7 +85,7 @@ public class TwoWheelBalanceController {
     public TwoWheelBalanceController(HardwareMap hardwareMap, double wheelBase, double wheelDia,double ticksPerMM,
                                      double kp, double ki, double kd) {
 
-        deltaTimeRA.addNumber(0.04); // add to running average to smooth the start
+        deltaTimeRA.addNumber(0.04); // add to running average to smooth the start??
 
         // Define and Initialize Motors
         leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
@@ -104,7 +106,6 @@ public class TwoWheelBalanceController {
         yawPID = new PIDController(kp, ki, kd); // kp 0.45, ki 0.12, kd 0.05
 
         yawPID.setSetpoint(0.0);    // initial yaw (yawTarget) is zero.
-
     }
 
     /**
@@ -131,13 +132,13 @@ public class TwoWheelBalanceController {
         pitch = orientation.getPitch(AngleUnit.DEGREES);
         imu.resetYaw(); // set the yaw value to zero
 
-        // reset the timers for the datalog timestamp, turns, runToPos
+        // reset the timer
         runtime.reset();
+        currentTime = runtime.seconds();
+        lastTime = currentTime;
 
         // reset the PIDs
         yawPID.reset();
-
-        currentTime = runtime.seconds(); // initialize current time for delta time values
     }
     /**
      *  Return the pitch from the IMU
@@ -146,19 +147,6 @@ public class TwoWheelBalanceController {
         orientation = imu.getRobotYawPitchRollAngles();
         return orientation.getPitch(AngleUnit.DEGREES);
     }
-    public double getPitchTarget() {return pitchTarget;}
-    public void setPosTarget(double pos) {posTarget = pos;}
-    public double getPosTarget() {return posTarget;}
-    public double getPosition() {return sOdom;}
-    public void setVeloTarget(double velo) {veloTarget = velo;}
-    public double getVeloTarget() {return veloTarget;}
-    public double getVelocity() {return linearVelocity;}
-    public void setArmPitchTarget (double target) { armPitchTarget = target;   }
-    public void setAutoPitchTarget (double target) { autoPitchTarget = target;   }
-
-    public void setCurrentVoltage(double cv) { currentVoltage = cv;  }
-    public void setYawTarget(double yaw) { yawTarget = yaw; }
-    public double getYawTarget() {return yawTarget;}
 
     private void resetMotors() {
         // reset the encoders
@@ -174,7 +162,7 @@ public class TwoWheelBalanceController {
      * Teleoperated inputs are removed from this method, so it can be called in autonomous.
       */
     public void loop(OpMode theOpmode) {
-        setLoopTime();
+        setLoopTime(); // this updates the deltaTime value
 
         double leftTicks = leftDrive.getCurrentPosition();
         double rightTicks = rightDrive.getCurrentPosition();
@@ -190,8 +178,8 @@ public class TwoWheelBalanceController {
 
         // get values from wheel encoders (odometry)
         odometry.update(leftTicks / TICKSPERMM, rightTicks / TICKSPERMM, pitch, deltaTime);
-        linearVelocity = odometry.getAvgLinearVelocity();
         sOdom = odometry.getS();
+        linearVelocity = odometry.getAvgLinearVelocity();
 
         // MAIN BALANCE CONTROL CODE:
         double posError = sOdom - posTarget;
@@ -233,13 +221,28 @@ public class TwoWheelBalanceController {
     }
     private void setLoopTime () {
         // compute a loop time.  Using running average to smooth values
-        double lastTime = currentTime;
+        lastTime = currentTime;
         currentTime = runtime.seconds();
         deltaTime = currentTime - lastTime;
+        if(deltaTime > 0.05) deltaTime = 0.05; // fake!
         // add the new delta time to the running average
         deltaTimeRA.addNumber(deltaTime);
         deltaTime = deltaTimeRA.getAverage(); // replace deltaTime with running average delta time
     }
     public double getDeltaTime() {return deltaTime;}
+    public double getPitchTarget() {return pitchTarget;}
+    public void setPosTarget(double pos) {posTarget = pos;}
+    public double getPosition() {return sOdom;}
+    public double getPosTarget() {return posTarget;}
 
+    public void setVeloTarget(double velo) {veloTarget = velo;}
+    public double getVeloTarget() {return veloTarget;}
+    public double getVelocity() {return linearVelocity;}
+    public void setArmPitchTarget (double target) { armPitchTarget = target;   }
+    public void setAutoPitchTarget (double target) { autoPitchTarget = target;   }
+    public void setCurrentVoltage(double cv) { currentVoltage = cv;  }
+    public void setYawTarget(double yaw) { yawTarget = yaw; }
+    public double getYawTarget() {return yawTarget;}
+    public double getPositionVolts() { return positionVolts;}
+    public double getPitchVolts() {return pitchVolts;}
 }

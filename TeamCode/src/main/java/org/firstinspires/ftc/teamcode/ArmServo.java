@@ -36,7 +36,7 @@ public class ArmServo {
         armServo = hardwareMap.get(Servo.class, servoName);
 
         m = (servoVal2-servoVal1)/(ang2-ang1); // slope of the servoPosition vs angle line
-        b = servoVal1/(m*ang1);  // intercept of the servoPosition vs angle line
+        b = servoVal1 - (m*ang1);  // intercept of the servoPosition vs angle line
 
         maxVelocity = maxV;
     }
@@ -83,8 +83,8 @@ public class ArmServo {
         currentPos += deltaPos; // update current position
 
         // check limits
-        if (currentPos > posMax) targetPos = posMax;
-        else if (currentPos < posMin) targetPos = posMin;
+        if (currentPos > posMax) currentPos = posMax;
+        else if (currentPos < posMin) currentPos = posMin;
     }
 
     /**

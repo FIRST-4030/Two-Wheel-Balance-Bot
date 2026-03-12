@@ -15,7 +15,7 @@ public class DatalogTWB {
         datalog = new DatalogTWBinside(fileName);
     }
     public void logPosPitch(double pos, double posTarget, double pitch, double pitchTarget,
-                            double posVolts, double pitchVolts) {
+                            double posVolts, double pitchVolts, double dt) {
         // Data log
         // Note that the order in which we set datalog fields
         // does *not* matter! Order is configured inside the Datalog class constructor.
@@ -45,7 +45,7 @@ public class DatalogTWB {
 //        datalog.Kpitch.set(Kpitch);
 //        datalog.KpitchRate.set(KpitchRate);
 //        datalog.PosAmplitude.set(PosAmplitude);
-//        datalog.PitchAmplitude.set(PitchAmplitude);
+        datalog.dt.set(dt);
     }
     public void writeLineTWB() {
         // The logged timestamp is taken when writeLine() is called.
@@ -82,13 +82,9 @@ public class DatalogTWB {
         public Datalogger.GenericField yawPwr = new Datalogger.GenericField("yawPower");
         public Datalogger.GenericField battery = new Datalogger.GenericField("Battery");
         public Datalogger.GenericField armAngle = new Datalogger.GenericField("armAngle");
-        public Datalogger.GenericField Kpos = new Datalogger.GenericField("Kpos");
-        public Datalogger.GenericField Kvelo = new Datalogger.GenericField("Kvelo");
-        public Datalogger.GenericField Kpitch = new Datalogger.GenericField("Kpitch");
-        public Datalogger.GenericField KpitchRate = new Datalogger.GenericField("KpitchRate");
 
         public Datalogger.GenericField PosAmplitude = new Datalogger.GenericField("PosAmplitude");
-        public Datalogger.GenericField PitchAmplitude = new Datalogger.GenericField("PitchAmplitude");
+        public Datalogger.GenericField dt = new Datalogger.GenericField("DeltaTime");
 
         public DatalogTWBinside(String name) {
             // Build the underlying datalog object
@@ -126,12 +122,8 @@ public class DatalogTWB {
                             //yawPwr,
                             //battery,
                             //armAngle,
-                            //Kpos,
-                            //Kvelo,
-                            //Kpitch,
-                            //KpitchRate,
                             //PosAmplitude,
-                            PitchAmplitude
+                            dt
                     )
                     .build();
         }

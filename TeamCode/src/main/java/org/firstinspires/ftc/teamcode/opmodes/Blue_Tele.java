@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.RunningAverage;
 
 /**
  * Iterative Tele OpMode is for driving a Two Wheel Balancing Robot with Arm
- * in regular mode.
+ * in regular (robot oriented) gamepad mode.
  */
 @TeleOp(name="Blue TWB Tele")
 //@Disabled
@@ -22,18 +22,25 @@ public class Blue_Tele extends OpMode
     private RunningAverage joystickS; // to smooth aggressive joystick inputs
 
     /**
-     * TWB Teleop Code to run ONCE when the driver hits INIT
+     * run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
-        joystickS = new RunningAverage(7); // initialize size of running average
-
+        joystickS = new RunningAverage(6); // initialize size of running average
+        /*
+        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge (FTC) SDK controls
+        how frequently telemetry data is sent from the Robot Controller to the Driver Station
+        250 (milliseconds) is the default value and a good general-purpose interval that balances updates with bandwidth usage.
+        100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates (e.g., vision processing, rapid sensor changes).
+        A lower interval provides a more real-time view of data on the Driver Station but increases communication bandwidth usage,
+         */
+        telemetry.setMsTransmissionInterval(100);
     }
 
     /**
-     * TWB Teleop Code to run REPEATEDLY after the driver hits INIT, but before they hit START
+     * run REPEATEDLY after the driver hits INIT, but before they hit START
      */
     @Override
     public void init_loop() {
@@ -46,7 +53,7 @@ public class Blue_Tele extends OpMode
     }
 
     /**
-     * TWB Teleop Code to run ONCE when the driver hits START
+     * run ONCE when the driver hits START
      */
     @Override
     public void start() {
@@ -54,29 +61,29 @@ public class Blue_Tele extends OpMode
     }
 
     /**
-     * TWB Teleop Code to run REPEATEDLY after the driver hits START but before they hit STOP
+     * run REPEATEDLY after the driver hits START but before they hit STOP
      */
     @Override
     public void loop() {
 
-        // get running average of the joystick to smooth aggressive inputs
+        // Use running average of the joystick to smooth aggressive inputs.
         // The left trigger is a speed booster
         joystickS.addNumber(gamepad1.left_stick_y * (1 + gamepad1.left_trigger));
 
-        // Translate the robot
-        twb.translateDrive(joystickS.getAverage(),8,7);
+        // Translate the robot by setting position, velocity and pitch targets
+        twb.translateDrive(joystickS.getAverage(),8,8);
 
-        // Either joystick can turn the robot.  Different speeds.
-        twb.turn_teleop(gamepad1.left_stick_x * 0.02);
-        twb.turn_teleop(gamepad1.right_stick_x * 0.01);
+        // Either joystick can turn the robot.  Different speeds. Sets yaw target
+        twb.turn_teleop(gamepad1.left_stick_x * 0.03);
+        twb.turn_teleop(gamepad1.right_stick_x * 0.04);
 
         twb.arm_teleop(gamepad1.right_stick_y);
 
-        //Set arm angle straight up
+        // Set arm angle straight up. Sets arm angle target
         if (gamepad1.left_bumper) twb.setArmAngle(0.0);
 
-        //Set arm angle to cargo collection
-        if (gamepad1.right_trigger_pressed) twb.setArmAngle(-150.0);
+        // Set arm angle to cargo collection. Sets arm angle target
+        if (gamepad1.right_trigger_pressed) twb.setArmAngle(-120.0);
 
         twb.claw_teleop(gamepad1.rightBumperWasPressed());
 
