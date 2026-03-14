@@ -245,4 +245,12 @@ public class TwoWheelBalanceController {
     public double getYawTarget() {return yawTarget;}
     public double getPositionVolts() { return positionVolts;}
     public double getPitchVolts() {return pitchVolts;}
+    public double getKpitch() {return Kpitch;}
+    public double getKpos() {return Kpos;}
+    public double getKpitchRate() {return KpitchRate;}
+    public double getKvelo() {return Kvelo;}
+    public void setKpos(double k) {Kpos = k;}
+    public void setKpitch(double k) {Kpitch = k;}
+    public void setKpitchRate(double k) {KpitchRate=k;}
+    public void setKvelo(double k) {Kvelo = k;}
 }

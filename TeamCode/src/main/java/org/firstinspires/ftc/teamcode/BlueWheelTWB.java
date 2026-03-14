@@ -46,14 +46,10 @@ public class BlueWheelTWB {
 
         // These are the state terms for a two wheel balancing robot
         // Tune these using the DOE (Design of Experiments) opmode.
-        // Kpitch = -0.57; // volts/degree
-        // KpitchRate = -0.029; // volts/degrees/sec
-
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
-        // and positive when the CM is above (unstable)
-        // Kpos = 0.017;  // volts/mm
-        // Kvelo = 0.015;  // volts/mm/sec
-        TWBController.setBalanceTerms(0.017,0.015,-0.57,-0.029);
+        // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
+        //                            Kpos        Kvelo       Kpitch       KpitchRate
+        TWBController.setBalanceTerms(0.018,0.017,-0.59,-0.021);
 
         // Initialize the arm class
         // Determine servo values for two angle using the ServoTester opmode
@@ -108,6 +104,12 @@ public class BlueWheelTWB {
         theArm.updateArm(TWBController.getDeltaTime()); // This will make the arm move
     }
 
+    /**
+     * Start calls the TWB controller start, which does many things
+     */
+    public void start() {
+        TWBController.start();
+    }
     /**
      * TWB Main Loop method.  Call repeatedly while running. Contains balance control logic.
      * Teleoperated inputs are removed from this method, so it can be called in autonomous.
@@ -197,4 +199,20 @@ public class BlueWheelTWB {
         om.telemetry.addLine(String.format("Arm Angle Target %.1f ,Current %.1f (degrees)",
                 theArm.getTargetAngle(),theArm.getAngle()));}
 
+    public void closeClaw() {ClawIsClosed = true;}
+    public double getKpos() {return TWBController.getKpos();}
+    public double getKpitch() {return TWBController.getKpitch();}
+    public double getKvelo() {return TWBController.getKvelo();}
+    public double getKpitchRate() {return TWBController.getKpitchRate();}
+    public void setKpos(double k) {TWBController.setKpos(k);}
+    public void setKpitch(double k) {TWBController.setKpitch(k);}
+    public void setKpitchRate(double k) {TWBController.setKpitchRate(k);}
+    public void setKvelo(double k) {TWBController.setKvelo(k);}
+    public void setAutoPitchTarget(double target) {TWBController.setAutoPitchTarget(target);}
+    public double getPos() {return TWBController.getPosition();}
+    public double getPosTarget() {return TWBController.getPosTarget();}
+    public double getPitch() {return TWBController.getPitch();}
+    public double getPitchTarget() {return TWBController.getPitchTarget();}
+    public double getPosVolts() {return TWBController.getPositionVolts();}
+    public double getPitchVolts() {return TWBController.getPitchVolts();}
 }

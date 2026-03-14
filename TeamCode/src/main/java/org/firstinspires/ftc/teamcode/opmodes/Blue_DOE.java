@@ -1,0 +1,275 @@
+
+package org.firstinspires.ftc.teamcode.opmodes;
+
+import android.annotation.SuppressLint;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.BlueWheelTWB;
+import org.firstinspires.ftc.teamcode.DatalogTWB;
+import org.firstinspires.ftc.teamcode.Datalogger;
+import org.firstinspires.ftc.teamcode.RunningAverage;
+import org.firstinspires.ftc.teamcode.Term;
+
+/**
+ * This Iterative Design of Experiments OpMode is for a Two Wheel Balancing Robot with Arm.
+ * It initializes to balancing, then runs through a series of Kposition and Kpitch terms
+ * with a perturbation (jiggle) to make the robot rock.
+ * A datalog records the min/max of position and pitch for each test, with the
+ * expectation that the lowest mix/max are the most stable terms.
+ */
+@TeleOp(name="Blue Design of Experiments")
+//@Disabled
+public class Blue_DOE extends OpMode {
+    // Declare OpMode members.
+    private BlueWheelTWB twb;
+    final private ElapsedTime moveTimer = new ElapsedTime();
+
+    // DOE constants.  Modify these for the experiment
+    private final double ARMANGLE = -90.0;
+    private final double testDuration = 5.0; // seconds per experiment
+    private final double JIGGLEDEG = 9.0; // Pitch jiggle for each experiment
+
+    // Modify the Terms in init()
+    private Term Kpos;
+    private Term Kpitch;
+    private Term Kvelo;
+    private Term KpitchRate;
+
+    // Internal variables
+    private int count = 1; // for counting the DOE
+    private int NEXPERIMENTS; // total experiments, set in init
+    private DatalogTWB datalogTWB; // datalog for full recording
+
+    private DatalogEXP datalogEXP;  // data logger for experiments
+
+    private RunningAverage robotPos; // to look for the balanced angle
+
+    /**
+     * Code to run ONCE when the driver hits INIT
+     */
+    @Override
+    public void init() {
+        twb = new BlueWheelTWB(hardwareMap); // Create twb object
+
+        // NOTE: TWO datalogs are written!
+        datalogTWB = new DatalogTWB();
+        datalogTWB.init("BlueDOEfull");
+
+        datalogEXP = new DatalogEXP("BlueDOEexperiments");
+
+        twb.closeClaw(); // close the claw
+
+        // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
+        Kpos = new Term(0.0161,0.0201,3,twb.getKpos());
+        Kpitch = new Term(-0.59,-0.55,3,twb.getKpitch());
+        Kvelo = new Term(0.016,0.018,3,twb.getKvelo());  // 0.020 breaks bot
+        KpitchRate = new Term(-0.027,-0.021,3,twb.getKpitchRate());
+
+        NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
+
+        robotPos = new RunningAverage(100); // initialize size of running average
+
+        twb.setArmAngle(ARMANGLE); // gets the latest state of the robot before running
+        /*
+        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge (FTC) SDK controls
+        how frequently telemetry data is sent from the Robot Controller to the Driver Station
+        250 (milliseconds) is the default value and a good general-purpose interval.
+        100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates.
+        A lower interval provides a more real-time view of data on the Driver Station but increases communication bandwidth usage,
+         */
+        telemetry.setMsTransmissionInterval(100);
+    }
+
+    /**
+     * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
+     * The Robot MOVES (balances) on init!!!
+     */
+    @Override
+    public void init_loop() {
+        telemetry.addData("DOE EXPERIMENT, ARM Angle (deg) =", ARMANGLE);
+        twb.loop(this);  // MAIN CONTROL SYSTEM
+
+        robotPos.addNumber(twb.getPos());
+        telemetry.addData("Robot Position (mm) (Averaged)","  %.1f", robotPos.getAverage());
+
+        telemetry.addData("Robot Pitch (deg)"," %.1f", twb.getPitch());
+
+        telemetry.update();
+    }
+
+    /**
+     * Code to run ONCE when the driver hits START
+     */
+    @Override
+    public void start() {
+        twb.start();
+        resetRuntime();
+        moveTimer.reset();
+    }
+
+    /**
+     * Code to run REPEATEDLY after the driver hits START but before they hit STOP
+     */
+    @Override
+    @SuppressLint("DefaultLocale")
+    public void loop() {
+        // give robot a jiggle at the beginning of each period to get a wave
+        // while using the original K terms so that the jiggle is consistent
+        if(moveTimer.seconds() < 0.1) {
+            twb.setKpos(Kpos.getOriginal());
+            twb.setKpitch(Kpitch.getOriginal());
+            twb.setKvelo(Kvelo.getOriginal());
+            twb.setKpitchRate(KpitchRate.getOriginal());
+
+            twb.setAutoPitchTarget(JIGGLEDEG); // add JIGGLEDEG degrees initially to jiggle
+
+        } else if(moveTimer.seconds() <= testDuration) {
+            // set the new DOE K terms
+            twb.setKpos(Kpos.current);
+            twb.setKpitch(Kpitch.current);
+            twb.setKvelo(Kvelo.current);
+            twb.setKpitchRate(KpitchRate.current);
+
+            twb.setAutoPitchTarget(0.0);
+
+            // during the experiment, after the jiggle, record min/max
+            if(moveTimer.seconds() > 0.3) {
+                // build the minimum amplitude "box" on the position wave
+                Kpos.updateMinMax(twb.getPos());
+
+                // build the minimum amplitude "box" on the pitch wave
+                Kpitch.updateMinMax(twb.getPitch());
+            }
+
+        } else if(moveTimer.seconds() > testDuration) {
+            // At the end of the experiment, only once, log data and do resets
+
+            // datalog - one line for each experiment
+            // count, KPIT, KPOS (the inputs)
+            datalogEXP.count.set(count);
+            datalogEXP.KPIT.set(Kpitch.current);
+            datalogEXP.KPOS.set(Kpos.current);
+            datalogEXP.KVELO.set(Kvelo.current);
+            datalogEXP.KPITRATE.set(KpitchRate.current);
+            // min, max and amplitudes (the results)
+            datalogEXP.minPos.set(Kpos.min);
+            datalogEXP.maxPos.set(Kpos.max);
+            double ampPos = Kpos.max - Kpos.min;
+            datalogEXP.ampPos.set(ampPos);
+            double AvgPos = (Kpos.min+Kpos.max)/2.0;
+            datalogEXP.AvgPos.set(AvgPos);
+            datalogEXP.minPitch.set(Kpitch.min);
+            datalogEXP.maxPitch.set(Kpitch.max);
+            double ampPitch = Kpitch.max - Kpitch.min;
+            datalogEXP.ampPitch.set(ampPitch);
+            datalogEXP.score.set(ampPitch*4.0+ampPos+Math.abs(AvgPos)); // low score wins!
+
+            // The logged timestamp is taken when writeLine() is called.
+            datalogEXP.writeLine();
+
+            // set up for the next experiment
+            KpitchRate.next();
+            if(count % Kvelo.getN() == 0) {
+                Kvelo.next();
+            }
+            if((count % (Kvelo.getN()*KpitchRate.getN())) == 0) {
+                Kpos.next();
+            }
+            if((count % (Kvelo.getN()*KpitchRate.getN()*Kpos.getN())) == 0) {
+                Kpitch.next();
+            }
+
+            moveTimer.reset();
+
+            count += 1;
+
+            Kpos.resetMinMax();
+            Kpitch.resetMinMax();
+        }
+
+        twb.loop(this);  // CALL MAIN TWB CONTROL SYSTEM
+
+        // datalogging of every loop is for the initial debugging of the DOE, when to
+        // look for min/max after the jiggle
+        datalogTWB.logPosPitch(twb.getPos(), twb.getPosTarget(), twb.getPitch(), twb.getPitchTarget(),
+                twb.getPosVolts(),twb.getPitchVolts(),0); // for datalog every loop cycle
+        datalogTWB.writeLineTWB();
+
+        telemetry.addLine(String.format("EXPERIMENT %d ,OF TOTAL %d",count, NEXPERIMENTS));
+        telemetry.addData("Kposition",Kpos.current);
+        telemetry.addData("Kpitch",Kpitch.current);
+        telemetry.addData("Kvelo",Kvelo.current);
+        telemetry.addData("KpitchRate",KpitchRate.current);
+
+        telemetry.update();
+
+        if (count > NEXPERIMENTS) requestOpModeStop(); // Stop the opmode
+    }
+    /**
+     * Datalog class encapsulates all the fields that will go into the datalog.
+     */
+    public static class DatalogEXP {
+        // The underlying datalogger object - it cares only about an array of loggable fields
+        private final Datalogger datalogger;
+
+        // These are all of the fields that we want in the datalog.
+        // Note that order here is NOT important. The order is important in the setFields() call below
+        public Datalogger.GenericField count = new Datalogger.GenericField("count");
+        public Datalogger.GenericField KPIT = new Datalogger.GenericField("KPIT");
+        public Datalogger.GenericField KPOS = new Datalogger.GenericField("KPOS");
+        public Datalogger.GenericField KVELO = new Datalogger.GenericField("KVELO");
+        public Datalogger.GenericField KPITRATE = new Datalogger.GenericField("KPITRATE");
+
+        public Datalogger.GenericField minPos = new Datalogger.GenericField("minPos");
+        public Datalogger.GenericField maxPos = new Datalogger.GenericField("maxPos");
+        public Datalogger.GenericField ampPos = new Datalogger.GenericField("ampPos");
+        public Datalogger.GenericField AvgPos = new Datalogger.GenericField("AVG_Pos");
+
+        public Datalogger.GenericField minPitch = new Datalogger.GenericField("minPitch");
+        public Datalogger.GenericField maxPitch = new Datalogger.GenericField("maxPitch");
+        public Datalogger.GenericField ampPitch = new Datalogger.GenericField("ampPitch");
+        public Datalogger.GenericField score = new Datalogger.GenericField("SCORE");
+
+
+        public DatalogEXP(String name) {
+            // Build the underlying datalog object
+            datalogger = new Datalogger.Builder()
+
+                    // Pass through the filename
+                    .setFilename(name)
+
+                    // Request an automatic timestamp field
+                    .setAutoTimestamp(Datalogger.AutoTimestamp.DECIMAL_SECONDS)
+
+                    // Tell it about the fields we care to log.
+                    // Note that order *IS* important here! The order in which we list
+                    // the fields is the order in which they will appear in the log.
+                    .setFields(
+                            count,
+                            KPIT,
+                            KPOS,
+                            KVELO,
+                            KPITRATE,
+                            minPos,
+                            maxPos,
+                            ampPos,
+                            AvgPos,
+                            minPitch,
+                            maxPitch,
+                            ampPitch,
+                            score
+                    )
+                    .build();
+        }
+
+        // Tell the datalogger to gather the values of the fields
+        // and write a new line in the log.
+        public void writeLine() {
+            datalogger.writeLine();
+        }
+
+    }
+}

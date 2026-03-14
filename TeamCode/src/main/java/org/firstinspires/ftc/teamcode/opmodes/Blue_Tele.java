@@ -32,8 +32,8 @@ public class Blue_Tele extends OpMode
         /*
         The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge (FTC) SDK controls
         how frequently telemetry data is sent from the Robot Controller to the Driver Station
-        250 (milliseconds) is the default value and a good general-purpose interval that balances updates with bandwidth usage.
-        100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates (e.g., vision processing, rapid sensor changes).
+        250 (milliseconds) is the default value and a good general-purpose interval.
+        100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates.
         A lower interval provides a more real-time view of data on the Driver Station but increases communication bandwidth usage,
          */
         telemetry.setMsTransmissionInterval(100);
@@ -57,6 +57,7 @@ public class Blue_Tele extends OpMode
      */
     @Override
     public void start() {
+        twb.start();
         twb.setArmAngle(-90.0); // gets the latest state of the robot before running
     }
 
