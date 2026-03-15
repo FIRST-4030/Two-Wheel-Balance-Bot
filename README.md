@@ -1,14 +1,32 @@
-## Two Wheel Balancing Robot Code
+## Two Wheel Balancing Robot Code, in the teamcode folder
 
----
-Class diagram for the Two Wheel Balancing Bot repository
+
+Conceptual class diagram for the Two Wheel Balancing Bot repository.
+
 ---
 ```mermaid
 classDiagram
-    class opmodes["Two Wheel Balancing Robot **Opmodes**"]
-    class robots["Robot Definitions **constants**"]
-    class controllers["System Controllers"]
-    class arm["Robot Arm, servo motor"]
+    class opmodes["Two Wheel Balancing Robot **Opmodes**"] {
+      + in opmodes folder
+      + multiple opmodes per robot
+      + TeleOp (name="Blue Design of Experiments")
+      + TeleOp (name="Blue TWB Tele")
+    }
+    class robots["Robot Definitions constants"] {
+      + one class per robot
+      + contains the tuning terms
+      + BlueWheelTWB(HardwareMap)
+    }
+    class controllers["System Controllers"] {
+      + a two wheel balancing robot controller, 4 terms
+      + a single term PID controller
+      + TwoWheelBalanceBot(Kpos,Kvelo,Kpitch,KpitchRate)
+      + PIDController(kp, ki, kd)
+    }
+    class arm["Robot Arm, servo motor"] {
+      + manages the servo movements
+      + ArmServo(servoName)
+    }
     opmodes <|-- robots
     robots <|-- controllers
     robots <|-- arm
