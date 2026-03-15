@@ -1,6 +1,19 @@
 ## Two Wheel Balancing Robot Code
 
-This repository contains code for Ingraham HS Robotics Two Wheel Balancing Bot.
+---
+Class diagram for the Two Wheel Balancing Bot repository
+---
+```mermaid
+classDiagram
+    class opmodes["Two Wheel Balancing Robot **Opmodes**"]
+    class robots["Robot Definitions **constants**"]
+    class controllers["System Controllers"]
+    class arm["Robot Arm, servo motor"]
+    opmodes <|-- robots
+    robots <|-- controllers
+    robots <|-- arm
+
+```
 
 ## NOTICE
 
