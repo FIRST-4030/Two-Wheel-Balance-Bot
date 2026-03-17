@@ -96,7 +96,7 @@ public class TwoWheelBalanceController {
 
         resetMotors();
 
-        odometry = new TWBOdometry(wheelBase, wheelDia, 0); // create odometry object
+        odometry = new TWBOdometry(wheelBase, wheelDia, 0,7,3); // create odometry object
         TICKSPERMM = ticksPerMM;
 
         imu = hardwareMap.get(IMU.class, "imu");
@@ -219,6 +219,13 @@ public class TwoWheelBalanceController {
             theOpmode.requestOpModeStop(); // Stop the opmode
         }
     }
+    public void imuYawReset() {
+        // Doesn't seem to be working if robot yaw is greater than 180
+        imu.resetYaw();
+        yawTarget = 0.0;
+        yaw = 0.0;
+        yawPID.reset();
+    }
     private void setLoopTime () {
         // compute a loop time.  Using running average to smooth values
         lastTime = currentTime;
@@ -253,4 +260,5 @@ public class TwoWheelBalanceController {
     public void setKpitch(double k) {Kpitch = k;}
     public void setKpitchRate(double k) {KpitchRate=k;}
     public void setKvelo(double k) {Kvelo = k;}
+    public double getYaw() {return yaw;  }
 }

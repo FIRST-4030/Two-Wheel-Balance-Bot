@@ -20,16 +20,16 @@ import org.firstinspires.ftc.teamcode.Term;
  * A datalog records the min/max of position and pitch for each test, with the
  * expectation that the lowest mix/max are the most stable terms.
  */
-@TeleOp(name="Blue Design of Experiments")
+@TeleOp(name="Blue Bot Terms Design of Experiments")
 //@Disabled
-public class Blue_DOE extends OpMode {
+public class Blue_Terms_DOE extends OpMode {
     // Declare OpMode members.
     private BlueWheelTWB twb;
     final private ElapsedTime moveTimer = new ElapsedTime();
 
     // DOE constants.  Modify these for the experiment
     private final double ARMANGLE = -90.0;
-    private final double testDuration = 5.0; // seconds per experiment
+    private final double testDuration = 4.0; // seconds per experiment
     private final double JIGGLEDEG = 9.0; // Pitch jiggle for each experiment
 
     // Modify the Terms in init()
@@ -45,7 +45,7 @@ public class Blue_DOE extends OpMode {
 
     private DatalogEXP datalogEXP;  // data logger for experiments
 
-    private RunningAverage robotPos; // to look for the balanced angle
+    private RunningAverage robotPos; // to provide steady position telemetry in init
 
     /**
      * Code to run ONCE when the driver hits INIT
@@ -56,9 +56,9 @@ public class Blue_DOE extends OpMode {
 
         // NOTE: TWO datalogs are written!
         datalogTWB = new DatalogTWB();
-        datalogTWB.init("BlueDOEfull");
+        datalogTWB.init("BlueDOEfull_log");
 
-        datalogEXP = new DatalogEXP("BlueDOEexperiments");
+        datalogEXP = new DatalogEXP("BlueDOEterms");
 
         twb.closeClaw(); // close the claw
 
@@ -70,15 +70,16 @@ public class Blue_DOE extends OpMode {
 
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
-        robotPos = new RunningAverage(100); // initialize size of running average
+        robotPos = new RunningAverage(100); // for robot position telemetry
 
         twb.setArmAngle(ARMANGLE); // gets the latest state of the robot before running
         /*
-        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge (FTC) SDK controls
+        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge SDK controls
         how frequently telemetry data is sent from the Robot Controller to the Driver Station
         250 (milliseconds) is the default value and a good general-purpose interval.
         100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates.
-        A lower interval provides a more real-time view of data on the Driver Station but increases communication bandwidth usage,
+        A lower interval provides a more real-time view of data on the Driver Station but increases
+        communication bandwidth usage,
          */
         telemetry.setMsTransmissionInterval(100);
     }
@@ -89,10 +90,11 @@ public class Blue_DOE extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData("DOE EXPERIMENT, ARM Angle (deg) =", ARMANGLE);
-        twb.loop(this);  // MAIN CONTROL SYSTEM
+        telemetry.addLine("DOE to determine Kpos, Kvelo, Kpitch & KpitchRate");
+        telemetry.addData("ARM Angle (deg) =", ARMANGLE);
+        twb.loop(this);  // call balance control system
 
-        robotPos.addNumber(twb.getPos());
+        robotPos.addNumber(twb.getPos()); // for telemetry only
         telemetry.addData("Robot Position (mm) (Averaged)","  %.1f", robotPos.getAverage());
 
         telemetry.addData("Robot Pitch (deg)"," %.1f", twb.getPitch());
@@ -108,6 +110,8 @@ public class Blue_DOE extends OpMode {
         twb.start();
         resetRuntime();
         moveTimer.reset();
+        Kpos.setTargetValue(0.0); // target position of the robot is zero
+        Kpitch.setTargetValue(twb.getPitchTarget());
     }
 
     /**
@@ -128,10 +132,10 @@ public class Blue_DOE extends OpMode {
 
         } else if(moveTimer.seconds() <= testDuration) {
             // set the new DOE K terms
-            twb.setKpos(Kpos.current);
-            twb.setKpitch(Kpitch.current);
-            twb.setKvelo(Kvelo.current);
-            twb.setKpitchRate(KpitchRate.current);
+            twb.setKpos(Kpos.getCurrent());
+            twb.setKpitch(Kpitch.getCurrent());
+            twb.setKvelo(Kvelo.getCurrent());
+            twb.setKpitchRate(KpitchRate.getCurrent());
 
             twb.setAutoPitchTarget(0.0);
 
@@ -142,6 +146,10 @@ public class Blue_DOE extends OpMode {
 
                 // build the minimum amplitude "box" on the pitch wave
                 Kpitch.updateMinMax(twb.getPitch());
+
+                // Integrate the position and pitch errors over time
+                Kpos.updateTargetArea(twb.getPos(), twb.getDeltaTime());
+                Kpitch.updateTargetArea(twb.getPitch(), twb.getDeltaTime());
             }
 
         } else if(moveTimer.seconds() > testDuration) {
@@ -150,21 +158,23 @@ public class Blue_DOE extends OpMode {
             // datalog - one line for each experiment
             // count, KPIT, KPOS (the inputs)
             datalogEXP.count.set(count);
-            datalogEXP.KPIT.set(Kpitch.current);
-            datalogEXP.KPOS.set(Kpos.current);
-            datalogEXP.KVELO.set(Kvelo.current);
-            datalogEXP.KPITRATE.set(KpitchRate.current);
+            datalogEXP.KPIT.set(Kpitch.getCurrent());
+            datalogEXP.KPOS.set(Kpos.getCurrent());
+            datalogEXP.KVELO.set(Kvelo.getCurrent());
+            datalogEXP.KPITRATE.set(KpitchRate.getCurrent());
             // min, max and amplitudes (the results)
-            datalogEXP.minPos.set(Kpos.min);
-            datalogEXP.maxPos.set(Kpos.max);
-            double ampPos = Kpos.max - Kpos.min;
+            datalogEXP.minPos.set(Kpos.getMin());
+            datalogEXP.maxPos.set(Kpos.getMax());
+            double ampPos = Kpos.getMax() - Kpos.getMin();
             datalogEXP.ampPos.set(ampPos);
-            double AvgPos = (Kpos.min+Kpos.max)/2.0;
+            double AvgPos = (Kpos.getMin() + Kpos.getMax())/2.0;
             datalogEXP.AvgPos.set(AvgPos);
-            datalogEXP.minPitch.set(Kpitch.min);
-            datalogEXP.maxPitch.set(Kpitch.max);
-            double ampPitch = Kpitch.max - Kpitch.min;
+            datalogEXP.PosError.set(Kpos.getValueArea());
+            datalogEXP.minPitch.set(Kpitch.getMin());
+            datalogEXP.maxPitch.set(Kpitch.getMax());
+            double ampPitch = Kpitch.getMax() - Kpitch.getMin();
             datalogEXP.ampPitch.set(ampPitch);
+            datalogEXP.PitchError.set(Kpitch.getValueArea());
             datalogEXP.score.set(ampPitch*4.0+ampPos+Math.abs(AvgPos)); // low score wins!
 
             // The logged timestamp is taken when writeLine() is called.
@@ -188,6 +198,8 @@ public class Blue_DOE extends OpMode {
 
             Kpos.resetMinMax();
             Kpitch.resetMinMax();
+            Kpos.resetTargetArea();
+            Kpitch.resetTargetArea();
         }
 
         twb.loop(this);  // CALL MAIN TWB CONTROL SYSTEM
@@ -199,10 +211,10 @@ public class Blue_DOE extends OpMode {
         datalogTWB.writeLineTWB();
 
         telemetry.addLine(String.format("EXPERIMENT %d ,OF TOTAL %d",count, NEXPERIMENTS));
-        telemetry.addData("Kposition",Kpos.current);
-        telemetry.addData("Kpitch",Kpitch.current);
-        telemetry.addData("Kvelo",Kvelo.current);
-        telemetry.addData("KpitchRate",KpitchRate.current);
+        telemetry.addData("Kposition", Kpos.getCurrent());
+        telemetry.addData("Kpitch", Kpitch.getCurrent());
+        telemetry.addData("Kvelo", Kvelo.getCurrent());
+        telemetry.addData("KpitchRate", KpitchRate.getCurrent());
 
         telemetry.update();
 
@@ -227,10 +239,13 @@ public class Blue_DOE extends OpMode {
         public Datalogger.GenericField maxPos = new Datalogger.GenericField("maxPos");
         public Datalogger.GenericField ampPos = new Datalogger.GenericField("ampPos");
         public Datalogger.GenericField AvgPos = new Datalogger.GenericField("AVG_Pos");
+        public Datalogger.GenericField PosError = new Datalogger.GenericField("Pos_Error");
 
         public Datalogger.GenericField minPitch = new Datalogger.GenericField("minPitch");
         public Datalogger.GenericField maxPitch = new Datalogger.GenericField("maxPitch");
         public Datalogger.GenericField ampPitch = new Datalogger.GenericField("ampPitch");
+        public Datalogger.GenericField PitchError = new Datalogger.GenericField("Pitch_Error");
+
         public Datalogger.GenericField score = new Datalogger.GenericField("SCORE");
 
 
@@ -257,9 +272,11 @@ public class Blue_DOE extends OpMode {
                             maxPos,
                             ampPos,
                             AvgPos,
+                            PosError,
                             minPitch,
                             maxPitch,
                             ampPitch,
+                            PitchError,
                             score
                     )
                     .build();

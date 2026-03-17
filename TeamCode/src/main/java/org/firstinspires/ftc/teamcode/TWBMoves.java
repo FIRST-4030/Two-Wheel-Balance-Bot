@@ -80,10 +80,10 @@ public class TWBMoves {
 
         posTarget = sign*distance*posVector.getY(currentTime/totalTime) + startingS;
 
-        //velocity = (posTarget-priorPosition)/(currentTime-priorTime);
+        velocity = (posTarget-priorPosition)/(currentTime-priorTime);
         priorPosition=posTarget;
         priorTime=currentTime;
-        velocity = 0.0;
+        //velocity = 0.0;
 
         max_v = 2.0 * distance / totalTime;
         max_a = 4.0 * max_v / totalTime;
@@ -94,68 +94,5 @@ public class TWBMoves {
 
         return new double[] {posTarget,pitchTarget, velocity};
     }
-/*
-public class MotionController {
 
-    private double maxVelocity;
-    private double maxAcceleration;
-
-    public MotionController(double maxVelocity, double maxAcceleration) {
-        this.maxVelocity = maxVelocity;
-        this.maxAcceleration = maxAcceleration;
-    }
-
-    //
-     * Calculates the next state (position, velocity) given the current state and a target position,
-     * respecting maximum velocity and acceleration.
-     *
-     * @param currentPosition The current position.
-     * @param currentVelocity The current velocity.
-     * @param targetPosition  The desired target position.
-     * @param deltaTime       The time step for the update.
-     * @return A double array containing [newPosition, newVelocity].
-     //
-public double[] calculateNextState(double currentPosition, double currentVelocity, double targetPosition, double deltaTime) {
-    double distanceToTarget = targetPosition - currentPosition;
-
-    // Determine direction of motion
-    int direction = (distanceToTarget > 0) ? 1 : -1;
-
-    // Calculate stopping distance required for current velocity
-    double stoppingDistance = (currentVelocity * currentVelocity) / (2 * maxAcceleration);
-
-    double acceleration = 0;
-
-    // If approaching target and need to decelerate
-    if (Math.abs(distanceToTarget) <= stoppingDistance && Math.signum(currentVelocity) == direction) {
-        // Decelerate
-        acceleration = -direction * maxAcceleration;
-    } else {
-        // Accelerate towards target, or maintain velocity
-        acceleration = direction * maxAcceleration;
-    }
-
-    // Calculate new velocity
-    double newVelocity = currentVelocity + acceleration * deltaTime;
-
-    // Limit new velocity to maxVelocity
-    newVelocity = Math.min(Math.abs(newVelocity), maxVelocity) * Math.signum(newVelocity);
-
-    // If we need to decelerate and new velocity crosses zero, set to zero
-    if (Math.signum(currentVelocity) != Math.signum(newVelocity) && Math.abs(distanceToTarget) <= stoppingDistance) {
-        newVelocity = 0;
-    }
-
-    // Calculate new position
-    double newPosition = currentPosition + newVelocity * deltaTime + 0.5 * acceleration * deltaTime * deltaTime;
-
-    // Ensure we don't overshoot the target
-    if (Math.signum(distanceToTarget) != Math.signum(targetPosition - newPosition)) {
-        newPosition = targetPosition;
-        newVelocity = 0;
-    }
-
-    return new double[]{newPosition, newVelocity};
-}
- */
 }

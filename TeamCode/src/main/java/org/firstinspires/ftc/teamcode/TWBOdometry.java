@@ -29,28 +29,31 @@ public class TWBOdometry {
 
     /**
      * Constructor,  provide wheel base and wheel dia in mm, initialPitch in degrees
+     * @param Nvelo The size of the running average array for linear velocity of bot
+     * @param Ndist The size of the running average array for left and right distance
       */
-    public TWBOdometry(double wheelBase, double wheelDia, double initialPitch) {
+    public TWBOdometry(double wheelBase, double wheelDia, double initialPitch,
+                       int Nvelo, int Ndist) {
         this.wheelBase = wheelBase;
         this.wheelCircumference = wheelDia*Math.PI; // convert diameter to circumference
         this.lastPitch = initialPitch; // robots initial pitch, probably not zero
-        this.veloAvg = new RunningAverage(7);
-        this.leftDistAvg = new RunningAverage(3);
-        this.rightDistAvg = new RunningAverage(3);
+        this.veloAvg = new RunningAverage(Nvelo);
+        this.leftDistAvg = new RunningAverage(Ndist);
+        this.rightDistAvg = new RunningAverage(Ndist);
 
         // initialize the running averages with some zeros to smooth out the startup
-        veloAvg.addNumber(0);
-        veloAvg.addNumber(0);
-        veloAvg.addNumber(0);
-        veloAvg.addNumber(0);
-
-        leftDistAvg.addNumber(0);
-        leftDistAvg.addNumber(0);
-        leftDistAvg.addNumber(0);
-
-        rightDistAvg.addNumber(0);
-        rightDistAvg.addNumber(0);
-        rightDistAvg.addNumber(0);
+//        veloAvg.addNumber(0);
+//        veloAvg.addNumber(0);
+//        veloAvg.addNumber(0);
+//        veloAvg.addNumber(0);
+//
+//        leftDistAvg.addNumber(0);
+//        leftDistAvg.addNumber(0);
+//        leftDistAvg.addNumber(0);
+//
+//        rightDistAvg.addNumber(0);
+//        rightDistAvg.addNumber(0);
+//        rightDistAvg.addNumber(0);
 
     }
 
@@ -140,33 +143,19 @@ public class TWBOdometry {
     public double getX() {
         return x;
     }
-
     public double getY() {
         return y;
     }
-
     public double getS() {
         return s;
     }
-
     public double getTheta() {
         return -noNormalTheta;
     }
-
-    /**
-     * return instant linear velocity
-     * @return linearVelocity
-     */
     public double getLinearVelocity() {
         return linearVelocity;
     }
-
-    /**
-     * return running average linear velocity
-     * @return veloAvg
-     */
     public double getAvgLinearVelocity() {
         return veloAvg.getAverage();
     }
 }
-

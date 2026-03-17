@@ -111,7 +111,7 @@ public class TwoWheelBalanceBot {
         leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        odometry = new TWBOdometry(WHEELBASE, WHEELDIA, pitch); // create odometry object
+        odometry = new TWBOdometry(WHEELBASE, WHEELDIA, pitch,7,3); // create odometry object
 
         // Get devices from the hardwareMap.
         // as needed, change "Control Hub" to (e.g.) "Expansion Hub 1".
@@ -355,7 +355,6 @@ public class TwoWheelBalanceBot {
         yawTarget = 0.0;
         yaw = 0.0;
         yawPID.reset();
-
     }
 
 }

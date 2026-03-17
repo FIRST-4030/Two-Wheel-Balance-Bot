@@ -21,10 +21,14 @@ public class BlueWheelTWB {
 
     //Handles the arm control, and adjusting the arm for the pitch of the robot
     private final ArmServo theArm;
+    private final double ARMMIN = -140.0;
+    private final double ARMMAX = 125.0;
 
     // PieceWise linear curve member for pitch angle vs arm angle
     final private PiecewiseFunction pitchAngVec = new PiecewiseFunction();
     private DatalogTWB datalogTWB; // datalog for full recording
+    private String dataLogName = "BlueLog";
+    private boolean writeDatalog = false; // default is no log.  call method to write.
 
     /**
      * TWB Constructor.  Call once in initialization.
@@ -54,7 +58,7 @@ public class BlueWheelTWB {
         // Initialize the arm class
         // Determine servo values for two angle using the ServoTester opmode
         theArm = new ArmServo(hardwareMap, "arm_servo", 0.25, 90, 0.68, -90, 30);
-        theArm.setLimits(-140.0, 125.0); // physical limits to keep from breaking things
+        theArm.setLimits(ARMMIN, ARMMAX); // physical limits to keep from breaking things
 
         /*
          * Arm Angle (degrees) vs. robot Pitch: (Pitch setpoint is a function of arm angle)
@@ -84,8 +88,10 @@ public class BlueWheelTWB {
 
         clawServo = hardwareMap.get(Servo.class, "clawServo");
 
-        datalogTWB = new DatalogTWB();
-        datalogTWB.init("BlueLog");
+        if (writeDatalog) {
+            datalogTWB = new DatalogTWB();
+            datalogTWB.init(dataLogName);
+        }
     }
 
     /**
@@ -98,8 +104,8 @@ public class BlueWheelTWB {
      */
     public void auto_right_loop() {
         // Check which way the robot is leaning and rotate the arm so that it will self-right
-        if (TWBController.getPitch() > 0.0) theArm.setArmAngle(140.0);
-        else theArm.setArmAngle(-150.0);
+        if (TWBController.getPitch() > 0.0) theArm.setArmAngle(ARMMAX);
+        else theArm.setArmAngle(ARMMIN);
 
         theArm.updateArm(TWBController.getDeltaTime()); // This will make the arm move
     }
@@ -126,11 +132,13 @@ public class BlueWheelTWB {
         if (ClawIsClosed) clawServo.setPosition(CLAWCLOSE); // closed value (0.98 for blocks)
         else clawServo.setPosition(CLAWOPEN); // open value (WAS 0.35)
 
-        datalogTWB.logPosPitch(TWBController.getPosition(), TWBController.getPosTarget(),
-                TWBController.getPitch(), TWBController.getPitchTarget(),
-                TWBController.getPositionVolts(),TWBController.getPitchVolts(),
-                TWBController.getDeltaTime());
-        datalogTWB.writeLineTWB();
+        if (writeDatalog) {
+            datalogTWB.logPosPitch(TWBController.getPosition(), TWBController.getPosTarget(),
+                    TWBController.getPitch(), TWBController.getPitchTarget(),
+                    TWBController.getPositionVolts(),TWBController.getPitchVolts(),
+                    TWBController.getDeltaTime());
+            datalogTWB.writeLineTWB();
+        }
     }
 
     /**
@@ -209,10 +217,22 @@ public class BlueWheelTWB {
     public void setKpitchRate(double k) {TWBController.setKpitchRate(k);}
     public void setKvelo(double k) {TWBController.setKvelo(k);}
     public void setAutoPitchTarget(double target) {TWBController.setAutoPitchTarget(target);}
+    public void setPosTarget(double pos) {TWBController.setPosTarget(pos);}
+    public void setVeloTarget(double velo) {TWBController.setVeloTarget(velo);}
     public double getPos() {return TWBController.getPosition();}
     public double getPosTarget() {return TWBController.getPosTarget();}
     public double getPitch() {return TWBController.getPitch();}
     public double getPitchTarget() {return TWBController.getPitchTarget();}
     public double getPosVolts() {return TWBController.getPositionVolts();}
     public double getPitchVolts() {return TWBController.getPitchVolts();}
+    public double getDeltaTime() {return TWBController.getDeltaTime();}
+    public void writeDatalog(String LogName) {
+        this.writeDatalog=true;
+        this.dataLogName = LogName;
+    }
+    public void setYawTarget(double yaw) {TWBController.setYawTarget(yaw);}
+    public double getYawTarget() {return TWBController.getYawTarget();}
+    public double getYaw() {return TWBController.getYaw();}
+    public void imuReset() {TWBController.imuYawReset();}
+
 }

@@ -3,6 +3,7 @@
 
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -14,7 +15,7 @@ import org.firstinspires.ftc.teamcode.TwoWheelBalanceBot;
  * in TANK mode.
  */
 @TeleOp(name="TWB Robot Oriented drive mode")
-//@Disabled
+@Disabled
 public class TWB_OpMode_TankDrive extends OpMode
 {
     // Declare OpMode members.

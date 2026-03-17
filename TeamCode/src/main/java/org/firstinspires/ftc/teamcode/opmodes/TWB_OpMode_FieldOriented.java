@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -17,7 +18,7 @@ import org.firstinspires.ftc.teamcode.TwoWheelBalanceBot;
  * Using a Field Oriented "swerve drive" type control
  */
 @TeleOp(name="TWB Field Oriented drive mode")
-//@Disabled
+@Disabled
 public class TWB_OpMode_FieldOriented extends OpMode
 {
     // Declare OpMode members.

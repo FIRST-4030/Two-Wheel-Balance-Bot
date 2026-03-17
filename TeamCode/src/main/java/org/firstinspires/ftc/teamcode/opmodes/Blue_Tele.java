@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import android.annotation.SuppressLint;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -28,15 +26,18 @@ public class Blue_Tele extends OpMode
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
+        //twb.writeDatalog("BlueTele"); // needs to be part of constructor or something
+
         joystickS = new RunningAverage(6); // initialize size of running average
         /*
-        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge (FTC) SDK controls
+        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge SDK controls
         how frequently telemetry data is sent from the Robot Controller to the Driver Station
         250 (milliseconds) is the default value and a good general-purpose interval.
         100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates.
-        A lower interval provides a more real-time view of data on the Driver Station but increases communication bandwidth usage,
+        A lower interval provides a more real-time view of data on the Driver Station but
+        increases communication bandwidth usage,
          */
-        telemetry.setMsTransmissionInterval(100);
+        telemetry.setMsTransmissionInterval(150);
     }
 
     /**

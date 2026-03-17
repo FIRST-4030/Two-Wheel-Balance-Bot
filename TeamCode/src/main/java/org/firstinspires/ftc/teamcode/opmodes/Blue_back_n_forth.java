@@ -2,30 +2,27 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.BlueWheelTWB;
 import org.firstinspires.ftc.teamcode.TWBMoves;
-import org.firstinspires.ftc.teamcode.TwoWheelBalanceBot;
 
 /**
  * This Iterative Autonomous OpMode is for a Two Wheel Balancing Robot with Arm.
- * Moves forward, drops object, moves back.
- * Used mostly for developing motion profiles.
+ * Moves forward, moves back.
+ * Used for developing motion profiles.
  */
-@Autonomous(name="TWB Auto Move FWD and Back")
-@Disabled
-public class TWB_OpMode_Auto1 extends OpMode {
-    private TwoWheelBalanceBot twb;
+@Autonomous(name="Blue TWB Back and Forth")
+//@Disabled
+public class Blue_back_n_forth extends OpMode {
+    private BlueWheelTWB twb;
     final private TWBMoves myTWBmoves = new TWBMoves(); // used for auto
     final private ElapsedTime moveTimer = new ElapsedTime();
-    double currentPos;
-    double DIST = 1000; // mm
-
-    double DIST_TIME = 2.8; // sec
-
-    double SETTLE_TIME = 1.0; // sec
+    private double currentPos;
+    private final double DIST = 1000; // mm
+    private final double DIST_TIME = 2.8; // sec
+    private final double SETTLE_TIME = 1.0; // sec
 
     enum State {
         START,
@@ -34,48 +31,37 @@ public class TWB_OpMode_Auto1 extends OpMode {
         DONE
     }
     State state = State.START;
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
+
     @Override
     public void init() {
-        twb = new TwoWheelBalanceBot(hardwareMap,this); // Create twb object
+        twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
-        twb.ClawIsClosed = true; // close the claw
+        twb.writeDatalog("BlueLogAutoBnF");
 
-        twb.init();
+        twb.closeClaw(); // close the claw
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
-     */
     @Override
     public void init_loop() {
-        telemetry.addData("AUTO", "INIT LOOP");
+        telemetry.addLine("BLUE TWO WHEEL BOT INIT ");
+        telemetry.addLine("BACK AND FORTH MOTION PROFILING");
+
+        telemetry.addLine("ROBOT MOVING INTO POSITION TO START");
 
         twb.auto_right_loop(); // gets the robot into a position to self right
-
-        twb.init_loop(); // provides user a chance to change the K terms
 
         telemetry.update();
     }
 
-    /*
-     * Code to run ONCE when the driver hits START
-     */
     @Override
     public void start() {
         state = State.START;
         resetRuntime();
         moveTimer.reset();
-
-        twb.start(-90); // gets the latest state of the robot before running
-        //twb.theArm.setArmAngle(-90);  // move the arm
+        twb.start();
+        twb.setArmAngle(-90.0); // gets the latest state of the robot before running
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits START but before they hit STOP
-     */
     @Override
     public void loop() {
         double[] newTargets;
@@ -91,13 +77,12 @@ public class TWB_OpMode_Auto1 extends OpMode {
             case MOVE1:
                 if (getRuntime() <= (SETTLE_TIME +DIST_TIME) ) {
                     newTargets = myTWBmoves.lineMove(DIST,DIST_TIME, moveTimer.seconds(),currentPos);
-                    twb.posTarget = newTargets[0]; // ADD METHOD THAT INCLUDES VELOCITY TARGET BASED ON POSTARGET
-                    twb.autoPitchTarget = newTargets[1];
-                    //twb.veloTarget = newTargets[2];
+                    twb.setPosTarget(newTargets[0]);
+                    twb.setAutoPitchTarget(newTargets[1]);
+                    twb.setVeloTarget(newTargets[2]);
                 } else {
                     state = State.MOVE2;
                     moveTimer.reset();
-                    twb.ClawIsClosed = false; // open the claw
                     currentPos = DIST; // for the next state
                 }
                 break;
@@ -108,9 +93,9 @@ public class TWB_OpMode_Auto1 extends OpMode {
                  } else if (getRuntime() <= (2*SETTLE_TIME + 2*DIST_TIME)) {
                          myTWBmoves.reverseDir = true;
                          newTargets = myTWBmoves.lineMove(DIST,DIST_TIME, moveTimer.seconds(),currentPos);
-                         twb.posTarget = newTargets[0];
-                         twb.autoPitchTarget = newTargets[1];
-                         //twb.veloTarget = newTargets[2];
+                         twb.setPosTarget(newTargets[0]);
+                         twb.setAutoPitchTarget(newTargets[1]);
+                         twb.setVeloTarget(newTargets[2]);
                  } else {
                          state = State.DONE;
                          moveTimer.reset();
@@ -121,7 +106,7 @@ public class TWB_OpMode_Auto1 extends OpMode {
                 break;
         }
 
-        twb.loop();  // MAIN CONTROL SYSTEM
+        twb.loop(this);  // MAIN CONTROL SYSTEM
 
         telemetry.addData("State",state);
         telemetry.update();
