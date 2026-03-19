@@ -14,4 +14,18 @@ public class Angles {
         while (difference > Math.PI) difference -= 2.0*Math.PI;
         return difference;
     }
+
+    /**
+     * NoSpinAngle adds a limited angle (from IMU) to a continuous angle to avoid the spin bug.
+     * @param continuousAngle the continuous angle
+     * @param newAngle the limited angle from -2*PI to 2*PI
+     * @return the updates continuous angle
+     */
+    public double NoSpinAngle(double continuousAngle, double newAngle) {
+        double deltaAngle = newAngle - continuousAngle;
+
+        if (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
+        else if (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
+        return deltaAngle;
+    }
 }

@@ -47,6 +47,8 @@ public class Blue_Terms_DOE extends OpMode {
 
     private RunningAverage robotPos; // to provide steady position telemetry in init
 
+    private double pitchFuzz = 0.0;
+
     /**
      * Code to run ONCE when the driver hits INIT
      */
@@ -54,11 +56,11 @@ public class Blue_Terms_DOE extends OpMode {
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
-        // NOTE: TWO datalogs are written!
-        datalogTWB = new DatalogTWB();
-        datalogTWB.init("BlueDOEfull_log");
-
+        // NOTE: TWO datalogs can be written!
+        // Load this log into a spreadsheet, filter, and sort for the lowest score.
         datalogEXP = new DatalogEXP("BlueDOEterms");
+
+        twb.writeDatalog("BlueDOEFull"); // This one is optional and bigger
 
         twb.closeClaw(); // close the claw
 
@@ -81,7 +83,7 @@ public class Blue_Terms_DOE extends OpMode {
         A lower interval provides a more real-time view of data on the Driver Station but increases
         communication bandwidth usage,
          */
-        telemetry.setMsTransmissionInterval(100);
+        telemetry.setMsTransmissionInterval(500);
     }
 
     /**
@@ -90,6 +92,10 @@ public class Blue_Terms_DOE extends OpMode {
      */
     @Override
     public void init_loop() {
+        if (gamepad1.dpadUpWasPressed()) pitchFuzz += 0.1;
+        else if (gamepad1.dpadDownWasPressed()) pitchFuzz -= 0.1;
+        twb.setAutoPitchTarget(pitchFuzz);
+
         telemetry.addLine("DOE to determine Kpos, Kvelo, Kpitch & KpitchRate");
         telemetry.addData("ARM Angle (deg) =", ARMANGLE);
         twb.loop(this);  // call balance control system
@@ -98,6 +104,7 @@ public class Blue_Terms_DOE extends OpMode {
         telemetry.addData("Robot Position (mm) (Averaged)","  %.1f", robotPos.getAverage());
 
         telemetry.addData("Robot Pitch (deg)"," %.1f", twb.getPitch());
+        telemetry.addData("Pitch  FUZZ (deg)"," %.1f", pitchFuzz);
 
         telemetry.update();
     }
@@ -128,7 +135,7 @@ public class Blue_Terms_DOE extends OpMode {
             twb.setKvelo(Kvelo.getOriginal());
             twb.setKpitchRate(KpitchRate.getOriginal());
 
-            twb.setAutoPitchTarget(JIGGLEDEG); // add JIGGLEDEG degrees initially to jiggle
+            twb.setAutoPitchTarget(JIGGLEDEG+pitchFuzz); // add JIGGLEDEG degrees initially to jiggle
 
         } else if(moveTimer.seconds() <= testDuration) {
             // set the new DOE K terms
@@ -137,7 +144,7 @@ public class Blue_Terms_DOE extends OpMode {
             twb.setKvelo(Kvelo.getCurrent());
             twb.setKpitchRate(KpitchRate.getCurrent());
 
-            twb.setAutoPitchTarget(0.0);
+            twb.setAutoPitchTarget(pitchFuzz);
 
             // during the experiment, after the jiggle, record min/max
             if(moveTimer.seconds() > 0.3) {
@@ -203,12 +210,6 @@ public class Blue_Terms_DOE extends OpMode {
         }
 
         twb.loop(this);  // CALL MAIN TWB CONTROL SYSTEM
-
-        // datalogging of every loop is for the initial debugging of the DOE, when to
-        // look for min/max after the jiggle
-        datalogTWB.logPosPitch(twb.getPos(), twb.getPosTarget(), twb.getPitch(), twb.getPitchTarget(),
-                twb.getPosVolts(),twb.getPitchVolts(),0); // for datalog every loop cycle
-        datalogTWB.writeLineTWB();
 
         telemetry.addLine(String.format("EXPERIMENT %d ,OF TOTAL %d",count, NEXPERIMENTS));
         telemetry.addData("Kposition", Kpos.getCurrent());

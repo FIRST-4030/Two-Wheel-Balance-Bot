@@ -42,18 +42,18 @@ public class TWBOdometry {
         this.rightDistAvg = new RunningAverage(Ndist);
 
         // initialize the running averages with some zeros to smooth out the startup
-//        veloAvg.addNumber(0);
-//        veloAvg.addNumber(0);
-//        veloAvg.addNumber(0);
-//        veloAvg.addNumber(0);
-//
-//        leftDistAvg.addNumber(0);
-//        leftDistAvg.addNumber(0);
-//        leftDistAvg.addNumber(0);
-//
-//        rightDistAvg.addNumber(0);
-//        rightDistAvg.addNumber(0);
-//        rightDistAvg.addNumber(0);
+        veloAvg.addNumber(0);
+        veloAvg.addNumber(0);
+        veloAvg.addNumber(0);
+        veloAvg.addNumber(0);
+
+        leftDistAvg.addNumber(0);
+        leftDistAvg.addNumber(0);
+        leftDistAvg.addNumber(0);
+
+        rightDistAvg.addNumber(0);
+        rightDistAvg.addNumber(0);
+        rightDistAvg.addNumber(0);
 
     }
 

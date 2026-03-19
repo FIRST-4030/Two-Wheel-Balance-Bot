@@ -51,6 +51,7 @@ public class TwoWheelBalanceController {
     private double pitchTarget = 0;
 
     private double pitch = 0; // degrees, value replaced with that from imu
+    private double pitchRATE;
 
     private double yawTarget = 0.0;
     private double yaw = 0;
@@ -82,8 +83,8 @@ public class TwoWheelBalanceController {
      * @param ki Yaw PID Ki term
      * @param kd Yaw PID Kd term
       */
-    public TwoWheelBalanceController(HardwareMap hardwareMap, double wheelBase, double wheelDia,double ticksPerMM,
-                                     double kp, double ki, double kd) {
+    public TwoWheelBalanceController(HardwareMap hardwareMap, double wheelBase, double wheelDia,
+                                     double ticksPerMM, double kp, double ki, double kd) {
 
         deltaTimeRA.addNumber(0.04); // add to running average to smooth the start??
 
@@ -174,7 +175,7 @@ public class TwoWheelBalanceController {
         //yaw = orientation.getYaw(AngleUnit.DEGREES);
         angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
         pitch = orientation.getPitch(AngleUnit.DEGREES);
-        double pitchRATE = angularVelocity.xRotationRate;
+        pitchRATE = angularVelocity.xRotationRate;
 
         // get values from wheel encoders (odometry)
         odometry.update(leftTicks / TICKSPERMM, rightTicks / TICKSPERMM, pitch, deltaTime);
@@ -193,7 +194,7 @@ public class TwoWheelBalanceController {
         double totalPowerVolts = pitchVolts + positionVolts;
 
         // The following controls the turn (yaw) of the robot
-        // getYaw always returns value from -2*PI to 2*PI
+        // IMU getYaw always returns value from -2*PI to 2*PI
         double rawYaw = orientation.getYaw(AngleUnit.RADIANS);
         // The code below makes "yaw" a continuous value TO DO: MAKE THIS A METHOD
         double deltaYaw = rawYaw - rawPriorYaw;
@@ -261,4 +262,5 @@ public class TwoWheelBalanceController {
     public void setKpitchRate(double k) {KpitchRate=k;}
     public void setKvelo(double k) {Kvelo = k;}
     public double getYaw() {return yaw;  }
+    public double getPitchRate() {return pitchRATE;}
 }

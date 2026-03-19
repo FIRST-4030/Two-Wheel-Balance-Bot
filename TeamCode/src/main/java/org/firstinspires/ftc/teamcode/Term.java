@@ -32,7 +32,7 @@ public class Term {
 
     public void next() {
         double check = this.getCurrent() + this.increment;
-        if(check > this.high) this.setCurrent(this.low);
+        if(check > (this.high+0.00001)) this.setCurrent(this.low);
         else this.setCurrent(check);
     }
 

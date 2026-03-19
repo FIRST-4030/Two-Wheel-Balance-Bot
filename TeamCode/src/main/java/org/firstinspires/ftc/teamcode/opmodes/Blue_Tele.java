@@ -26,7 +26,7 @@ public class Blue_Tele extends OpMode
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
-        //twb.writeDatalog("BlueTele"); // needs to be part of constructor or something
+        twb.writeDatalog("BlueTele"); // needs to be part of constructor or something
 
         joystickS = new RunningAverage(6); // initialize size of running average
         /*
@@ -37,7 +37,7 @@ public class Blue_Tele extends OpMode
         A lower interval provides a more real-time view of data on the Driver Station but
         increases communication bandwidth usage,
          */
-        telemetry.setMsTransmissionInterval(150);
+        telemetry.setMsTransmissionInterval(250);
     }
 
     /**

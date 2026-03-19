@@ -76,7 +76,7 @@ public class ArmServo {
      */
     private void updatePosition(double deltaTime) {
         double deltaPos = targetPos-currentPos; // position change being asked for
-        double deltaPosMax = maxVelocity * deltaTime; // convert rate limit to delta position based on loop time
+        double deltaPosMax = maxVelocity * deltaTime; // rate limit
         // apply velocity (rate) limit
         if (Math.abs(deltaPos) > deltaPosMax) deltaPos = Math.signum(deltaPos) * deltaPosMax;
 

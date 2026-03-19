@@ -27,7 +27,6 @@ public class BlueWheelTWB {
     // PieceWise linear curve member for pitch angle vs arm angle
     final private PiecewiseFunction pitchAngVec = new PiecewiseFunction();
     private DatalogTWB datalogTWB; // datalog for full recording
-    private String dataLogName = "BlueLog";
     private boolean writeDatalog = false; // default is no log.  call method to write.
 
     /**
@@ -87,11 +86,6 @@ public class BlueWheelTWB {
         pitchAngVec.addElement(160,-2.205); // new global arm angle is 157.795"
 
         clawServo = hardwareMap.get(Servo.class, "clawServo");
-
-        if (writeDatalog) {
-            datalogTWB = new DatalogTWB();
-            datalogTWB.init(dataLogName);
-        }
     }
 
     /**
@@ -134,7 +128,9 @@ public class BlueWheelTWB {
 
         if (writeDatalog) {
             datalogTWB.logPosPitch(TWBController.getPosition(), TWBController.getPosTarget(),
-                    TWBController.getPitch(), TWBController.getPitchTarget(),
+                    TWBController.getVelocity(), TWBController.getVeloTarget(),TWBController.getPitch(),
+                    TWBController.getPitchTarget(), TWBController.getPitchRate(),
+                    TWBController.getYaw(),TWBController.getYawTarget(),
                     TWBController.getPositionVolts(),TWBController.getPitchVolts(),
                     TWBController.getDeltaTime());
             datalogTWB.writeLineTWB();
@@ -179,15 +175,15 @@ public class BlueWheelTWB {
     }
 
     /**
-     * TWB method translates the robot at the current angle by setting Position, Velocity and Pitch Targets.
+     * TWB method translates the robot at the current angle by setting Position, Velocity & Pitch Targets.
      * @param forward value from -1 to 1 that is the forward or backward amount
      * @param degPerLoop robot pitch degrees per loop, multiplied by forward (6 is good)
      * @param mmPerLoop robot translation in mm per loop, multiplied by forward (7 is good)
      */
     public void translateDrive(double forward, double mmPerLoop, double degPerLoop) {
 
-        // add some pitch to get it moving
-        TWBController.setAutoPitchTarget(forward * degPerLoop); // degPerLoop of 6 results in gentle movement
+        // add some pitch to get it moving (degPerLoop of 6 results in gentle movement)
+        TWBController.setAutoPitchTarget(forward * degPerLoop);
 
         // Update posTarget (mm) Note: this value * 50 = mm per second
         // mmPerLoop of 7 results in a gentle speed
@@ -223,12 +219,14 @@ public class BlueWheelTWB {
     public double getPosTarget() {return TWBController.getPosTarget();}
     public double getPitch() {return TWBController.getPitch();}
     public double getPitchTarget() {return TWBController.getPitchTarget();}
+    public double getPitchRate() {return TWBController.getPitchRate();}
     public double getPosVolts() {return TWBController.getPositionVolts();}
     public double getPitchVolts() {return TWBController.getPitchVolts();}
     public double getDeltaTime() {return TWBController.getDeltaTime();}
     public void writeDatalog(String LogName) {
         this.writeDatalog=true;
-        this.dataLogName = LogName;
+        datalogTWB = new DatalogTWB();
+        datalogTWB.init(LogName);
     }
     public void setYawTarget(double yaw) {TWBController.setYawTarget(yaw);}
     public double getYawTarget() {return TWBController.getYawTarget();}

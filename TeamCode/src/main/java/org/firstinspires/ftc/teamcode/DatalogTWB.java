@@ -14,25 +14,27 @@ public class DatalogTWB {
     public void init(String fileName) {
         datalog = new DatalogTWBinside(fileName);
     }
-    public void logPosPitch(double pos, double posTarget, double pitch, double pitchTarget,
-                            double posVolts, double pitchVolts, double dt) {
+    public void logPosPitch(double pos, double posTarget, double velocity, double veloTarget,
+                            double pitch, double pitchTarget, double pitchRATE,
+                            double yaw,  double yawTarget, double posVolts,
+                            double pitchVolts, double dt) {
         // Data log
         // Note that the order in which we set datalog fields
         // does *not* matter! Order is configured inside the Datalog class constructor.
         datalog.pos.set(pos);
         datalog.posTarget.set(posTarget);
-//        datalog.veloTarget.set(veloTarget);
+        datalog.veloTarget.set(veloTarget);
         datalog.pitch.set(pitch);
         datalog.pitchTarget.set(pitchTarget);
-//        datalog.pitchRATE.set(pitchRATE);
-//        datalog.yaw.set(yaw);
-//        datalog.yawTarget.set(yawTarget);
+        datalog.pitchRATE.set(pitchRATE);
+        datalog.yaw.set(yaw);
+        datalog.yawTarget.set(yawTarget);
 //        datalog.yawTheta.set(theta);
 //        datalog.x.set(odometry.getX());
 //        datalog.y.set(odometry.getY());
 //        datalog.leftTicks.set(leftTicks / TICKSPERMM);
 //        datalog.rightTicks.set(rightTicks); // TICKSPERMM
-//        datalog.linVelo.set(odometry.getLinearVelocity());
+        datalog.linVelo.set(velocity);
 //        datalog.avgLinVelo.set(linearVelocity); // this is a running average
         datalog.positionVolts.set(posVolts); // look for saturation when tuning
         datalog.pitchVolts.set(pitchVolts);  // look for saturation when tuning
@@ -102,19 +104,19 @@ public class DatalogTWB {
                     .setFields(
                             pitch,
                             pitchTarget,
-                            //pitchRATE,
+                            pitchRATE,
                             pos,
                             posTarget,
-                            //veloTarget,
-                            //yaw,
-                            //yawTarget,
+                            veloTarget,
+                            yaw,
+                            yawTarget,
                             //yawTheta,
                             //x,
                             //y,
                             //leftTicks,
                             //rightTicks,
                             //rightODO,
-                            //linVelo,
+                            linVelo,
                             //avgLinVelo,
                             positionVolts,
                             pitchVolts,

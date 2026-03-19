@@ -29,6 +29,8 @@ public class Blue_Tele_Field_Centric extends OpMode
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
+        twb.writeDatalog("BlueFieldCentric"); // needs to be part of constructor or something
+
         speed = new RunningAverage(6); // initialize size of running average
         /*
         The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge SDK controls
@@ -38,7 +40,7 @@ public class Blue_Tele_Field_Centric extends OpMode
         A lower interval provides a more real-time view of data on the Driver Station but
         increases communication bandwidth usage,
          */
-        telemetry.setMsTransmissionInterval(150);
+        telemetry.setMsTransmissionInterval(500);
     }
 
     /**
@@ -85,9 +87,8 @@ public class Blue_Tele_Field_Centric extends OpMode
             double yaw1 = Math.atan2(right, forward);
             double shortestYawMove = shortestAngleDifference(yaw1, twb.getYawTarget()); // radians
 
-            // Adjust yawTarget, with constraint on how much, and the TWB yaw PID controller does the rest
-            // YAW Maximum Delta Radians update per loop
-            double MAXDELTARAD = 0.08;
+            // Adjust yawTarget, with constraint on how much. The TWB yaw PID controller does the rest
+            double MAXDELTARAD = 0.08; // YAW Maximum Delta Radians update per loop
             if (shortestYawMove > MAXDELTARAD) {
                 twb.setYawTarget(twb.getYawTarget()+ MAXDELTARAD);
             } else if (shortestYawMove < -MAXDELTARAD) {
@@ -118,7 +119,8 @@ public class Blue_Tele_Field_Centric extends OpMode
 
         twb.loop(this);  // call the MAIN CONTROL SYSTEM
 
-        telemetry.addLine(String.format("Yaw Target %.1f ,Current %.1f (degrees)",twb.getYawTarget()*180/Math.PI,twb.getYaw()*180/Math.PI));
+        telemetry.addLine(String.format("Yaw Target %.1f ,Current %.1f (degrees)",
+                twb.getYawTarget()*180/Math.PI,twb.getYaw()*180/Math.PI));
 
         twb.writeTelemetry(this);
 
