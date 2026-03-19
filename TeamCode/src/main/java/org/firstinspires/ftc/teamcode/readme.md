@@ -1,9 +1,44 @@
 ## TeamCode Module for Two Wheel Balancing Robot
 
-Welcome!
 
-This module, TeamCode, is the place where code for the Two Wheel Balancing robot
-controller App. 
+Conceptual class diagram for the Two Wheel Balancing Bot repository.
+
+---
+```mermaid
+classDiagram
+    class opmodes["Two Wheel Balancing Robot **Opmodes**"] {
+      + in the opmodes folder
+      + multiple opmodes, multiple robots
+      + examples below
+      + TeleOp (name="Blue Design of Experiments")
+      + TeleOp (name="Blue TWB Tele")
+    }
+    class robots["Robot Definitions  & constants"] {
+      + one class per robot
+      + contain: tuning terms, constants, ...
+      + Only one Blue Wheeled robot presently
+      + example below
+      + BlueWheelTWB(HardwareMap)
+    }
+    class controllers["System Controllers"] {
+      + This repository contains 2 controllers:
+      + a two wheel balancing robot controller, 4 terms
+      + a single term PID controller
+      + TwoWheelBalanceBot(Kpos,Kvelo,Kpitch,KpitchRate)
+      + PIDController(kp, ki, kd)
+    }
+    class others["Other Classes"] {
+      + Many other classes, such as:
+      + ArmServo(arms controlled by servos)
+      + TWBOdometry(odometry for TWB)
+      + RunningAverage(math for running avg)
+      + TWBMoves(moves or paths for TWB)
+    }
+    opmodes <|-- robots
+    robots <|-- controllers
+    robots <|-- others
+```
+ 
 
 ## OpModes
 

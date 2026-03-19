@@ -16,16 +16,20 @@ public class RunningAverage {
 
     /**
      * Constructor
-      */
+     */
     public RunningAverage(int size) {
         this.maxSize = size;
         this.window = new LinkedList<>();
         this.sum = 0.0;
+        for (int k = 0; k < size - 1; k++) {
+            window.add(0.0);
+        }
     }
 
     /**
      * Add a number to the running average object.
-     * @param number
+     *
+     * @param number to be added to the running average
      */
     public void addNumber(double number) {
         if (window.size() == maxSize) {
@@ -37,6 +41,7 @@ public class RunningAverage {
 
     /**
      * Get the average from the running average object.
+     *
      * @return average
      */
     public double getAverage() {

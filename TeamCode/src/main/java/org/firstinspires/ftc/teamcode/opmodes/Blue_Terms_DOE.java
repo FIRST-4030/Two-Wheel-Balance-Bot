@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.BlueWheelTWB;
 import org.firstinspires.ftc.teamcode.DatalogTWB;
 import org.firstinspires.ftc.teamcode.Datalogger;
-import org.firstinspires.ftc.teamcode.RunningAverage;
+import org.firstinspires.ftc.teamcode.RunningAverageArray;
 import org.firstinspires.ftc.teamcode.Term;
 
 /**
@@ -45,7 +45,7 @@ public class Blue_Terms_DOE extends OpMode {
 
     private DatalogEXP datalogEXP;  // data logger for experiments
 
-    private RunningAverage robotPos; // to provide steady position telemetry in init
+    private RunningAverageArray robotPos; // to provide steady position telemetry in init
 
     private double pitchFuzz = 0.0;
 
@@ -65,14 +65,14 @@ public class Blue_Terms_DOE extends OpMode {
         twb.closeClaw(); // close the claw
 
         // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
-        Kpos = new Term(0.0161,0.0201,3,twb.getKpos());
-        Kpitch = new Term(-0.59,-0.55,3,twb.getKpitch());
+        Kpos = new Term(0.015,0.017,3,twb.getKpos());
+        Kpitch = new Term(-0.58,-0.54,3,twb.getKpitch());
         Kvelo = new Term(0.016,0.018,3,twb.getKvelo());  // 0.020 breaks bot
-        KpitchRate = new Term(-0.027,-0.021,3,twb.getKpitchRate());
+        KpitchRate = new Term(-0.028,-0.022,3,twb.getKpitchRate());
 
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
-        robotPos = new RunningAverage(100); // for robot position telemetry
+        robotPos = new RunningAverageArray(100,true); // for robot position telemetry
 
         twb.setArmAngle(ARMANGLE); // gets the latest state of the robot before running
         /*
@@ -100,7 +100,7 @@ public class Blue_Terms_DOE extends OpMode {
         telemetry.addData("ARM Angle (deg) =", ARMANGLE);
         twb.loop(this);  // call balance control system
 
-        robotPos.addNumber(twb.getPos()); // for telemetry only
+        robotPos.add(twb.getPos()); // for telemetry only
         telemetry.addData("Robot Position (mm) (Averaged)","  %.1f", robotPos.getAverage());
 
         telemetry.addData("Robot Pitch (deg)"," %.1f", twb.getPitch());
@@ -148,15 +148,19 @@ public class Blue_Terms_DOE extends OpMode {
 
             // during the experiment, after the jiggle, record min/max
             if(moveTimer.seconds() > 0.3) {
+                double thisPos = twb.getPos();
+                double thisPitch = twb.getPitch(); // this calls IMU which might be slow
+                double thisDT = twb.getDeltaTime();
+
                 // build the minimum amplitude "box" on the position wave
-                Kpos.updateMinMax(twb.getPos());
+                Kpos.updateMinMax(thisPos);
 
                 // build the minimum amplitude "box" on the pitch wave
-                Kpitch.updateMinMax(twb.getPitch());
+                Kpitch.updateMinMax(thisPitch);
 
                 // Integrate the position and pitch errors over time
-                Kpos.updateTargetArea(twb.getPos(), twb.getDeltaTime());
-                Kpitch.updateTargetArea(twb.getPitch(), twb.getDeltaTime());
+                Kpos.updateTargetArea(thisPos, thisDT);
+                Kpitch.updateTargetArea(thisPitch, thisDT);
             }
 
         } else if(moveTimer.seconds() > testDuration) {

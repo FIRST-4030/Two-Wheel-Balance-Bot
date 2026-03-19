@@ -22,7 +22,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 /**
  * Two Wheel Balancing Robot Class, with Arm.
  */
-public class TwoWheelBalanceBot {
+public class ZZTwoWheelBalanceBot {
     private final OpMode theOpmode; // Set during construction.  Enables using telemetry and gamepad
 
     public boolean TELEMETRY = true; // switch for telemetry
@@ -72,7 +72,7 @@ public class TwoWheelBalanceBot {
     public double pitchVolts = 0.0;
 
     //Handles the arm control, and adjusting the arm for the pitch of the robot
-    public TWBArmServo theArm;
+    public ZZTWBArmServo theArm;
 
     private final DcMotor leftDrive;
     private final DcMotor rightDrive;
@@ -92,7 +92,7 @@ public class TwoWheelBalanceBot {
     /**
      * TWB Constructor.  Call once in initialization.
       */
-    public TwoWheelBalanceBot(HardwareMap hardwareMap, OpMode opMode) {
+    public ZZTwoWheelBalanceBot(HardwareMap hardwareMap, OpMode opMode) {
 
         this.theOpmode = opMode; // set the opmode that is calling this class
 
@@ -123,7 +123,7 @@ public class TwoWheelBalanceBot {
 
         // Initialize the arm class
         // ARM LIMITS ARE DEFINED IN ArmServoTWB class
-        theArm = new TWBArmServo(hardwareMap, "arm_servo", 0.0, 140, -165, 60);
+        theArm = new ZZTWBArmServo(hardwareMap, "arm_servo", 0.0, 140, -165, 60);
         // NOTE: Set arm angle to zero to rig the servo (so it is easy to see)
 
         clawServo = hardwareMap.get(Servo.class, "clawServo");
@@ -168,11 +168,11 @@ public class TwoWheelBalanceBot {
       */
     public void start(double armAngle) {
         // reset the encoders because the robot may have moved during auto righting
-        //leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        //rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        //leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         orientation = imu.getRobotYawPitchRollAngles();
         pitch = orientation.getPitch(AngleUnit.DEGREES);

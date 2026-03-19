@@ -80,10 +80,10 @@ public class TWBMoves {
 
         posTarget = sign*distance*posVector.getY(currentTime/totalTime) + startingS;
 
-        //velocity = (posTarget-priorPosition)/(currentTime-priorTime);
+        velocity = (posTarget-priorPosition)/(currentTime-priorTime);
         priorPosition=posTarget;
         priorTime=currentTime;
-        velocity = 0.0;
+        //velocity = 0.0;
 
         max_v = 2.0 * distance / totalTime;
         max_a = 4.0 * max_v / totalTime;

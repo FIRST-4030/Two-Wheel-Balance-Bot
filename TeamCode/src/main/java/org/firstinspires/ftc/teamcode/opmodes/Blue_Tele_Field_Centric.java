@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.BlueWheelTWB;
-import org.firstinspires.ftc.teamcode.RunningAverage;
+import org.firstinspires.ftc.teamcode.RunningAverageArray;
 
 /**
  * Iterative Tele OpMode is for driving a Two Wheel Balancing Robot with Arm
@@ -20,7 +20,7 @@ public class Blue_Tele_Field_Centric extends OpMode
 {
     // Declare OpMode members.
     private BlueWheelTWB twb;
-    private RunningAverage speed; // to smooth aggressive joystick inputs
+    private RunningAverageArray speed; // to smooth aggressive joystick inputs
 
     /**
      * run ONCE when the driver hits INIT
@@ -31,7 +31,7 @@ public class Blue_Tele_Field_Centric extends OpMode
 
         twb.writeDatalog("BlueFieldCentric"); // needs to be part of constructor or something
 
-        speed = new RunningAverage(6); // initialize size of running average
+        speed = new RunningAverageArray(6,false); // initialize size of running average
         /*
         The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge SDK controls
         how frequently telemetry data is sent from the Robot Controller to the Driver Station
@@ -76,7 +76,7 @@ public class Blue_Tele_Field_Centric extends OpMode
         double forward = -gamepad1.left_stick_y;
         double right = -gamepad1.left_stick_x;
         double speed1 = Math.sqrt(forward*forward + right*right);
-        speed.addNumber(speed1);
+        speed.add(speed1);
 
         // The java.lang.Math.atan2() method returns the angle (theta) in radians between
         // the positive x-axis and a point (x, y).

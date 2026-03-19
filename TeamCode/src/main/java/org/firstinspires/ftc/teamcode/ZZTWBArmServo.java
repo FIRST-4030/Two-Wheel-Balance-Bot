@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * The computation has been done externally (using OpenSCAD Mass Properties Simulator program)
  * and saved as a lookup Piecewise curve.
   */
-public class TWBArmServo {
+public class ZZTWBArmServo {
     private double currentPos; // current position (degrees)
     private double targetPos; // target position (degrees)
     final private double posMax; // maximum position to prevent damage (degrees)
@@ -31,8 +31,8 @@ public class TWBArmServo {
     /**
      * TWBArmServo constructor. Initializes the pitch vs arm-angle curve.
       */
-    public TWBArmServo(HardwareMap hardwareMap, String servoName, double initAngle,
-                       double maxPos, double minPos, double maxV){
+    public ZZTWBArmServo(HardwareMap hardwareMap, String servoName, double initAngle,
+                         double maxPos, double minPos, double maxV){
         this.currentPos = initAngle;
         this.targetPos = initAngle;
         this.posMax = maxPos;

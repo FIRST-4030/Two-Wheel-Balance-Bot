@@ -22,10 +22,10 @@ public class TWBOdometry {
     private double noNormalTheta = 0; // continuous orientation angle
 
     private double linearVelocity = 0.0;
-    final private RunningAverage veloAvg;   // Running average of linear velocity
+    final private RunningAverageArray veloAvg;   // Running average of linear velocity
     
-    final private RunningAverage leftDistAvg; // Running average of left encoder
-    final private RunningAverage rightDistAvg; // Running average of left encoder
+    final private RunningAverageArray leftDistAvg; // Running average of left encoder
+    final private RunningAverageArray rightDistAvg; // Running average of left encoder
 
     /**
      * Constructor,  provide wheel base and wheel dia in mm, initialPitch in degrees
@@ -37,24 +37,11 @@ public class TWBOdometry {
         this.wheelBase = wheelBase;
         this.wheelCircumference = wheelDia*Math.PI; // convert diameter to circumference
         this.lastPitch = initialPitch; // robots initial pitch, probably not zero
-        this.veloAvg = new RunningAverage(Nvelo);
-        this.leftDistAvg = new RunningAverage(Ndist);
-        this.rightDistAvg = new RunningAverage(Ndist);
 
-        // initialize the running averages with some zeros to smooth out the startup
-        veloAvg.addNumber(0);
-        veloAvg.addNumber(0);
-        veloAvg.addNumber(0);
-        veloAvg.addNumber(0);
-
-        leftDistAvg.addNumber(0);
-        leftDistAvg.addNumber(0);
-        leftDistAvg.addNumber(0);
-
-        rightDistAvg.addNumber(0);
-        rightDistAvg.addNumber(0);
-        rightDistAvg.addNumber(0);
-
+        // initialize the running averages with zeros to smooth out the startup
+        this.veloAvg = new RunningAverageArray(Nvelo,true);
+        this.leftDistAvg = new RunningAverageArray(Ndist,true);
+        this.rightDistAvg = new RunningAverageArray(Ndist,true);
     }
 
     /**
@@ -85,8 +72,8 @@ public class TWBOdometry {
         lastRightDistance = rightDistAvg.getAverage();
 
         // add the new distances to the running averages
-        leftDistAvg.addNumber(leftDistance);
-        rightDistAvg.addNumber(rightDistance);
+        leftDistAvg.add(leftDistance);
+        rightDistAvg.add(rightDistance);
 
         // get the new running average distance
         newLeftDistance = leftDistAvg.getAverage();
@@ -104,7 +91,7 @@ public class TWBOdometry {
         deltaDistance = (deltaLeft + deltaRight) / 2;
         s += deltaDistance;
         linearVelocity = deltaDistance/timeChange;
-        veloAvg.addNumber(linearVelocity); // add to the running average
+        veloAvg.add(linearVelocity); // add to the running average
 
         // Update the position and orientation
         if (deltaTheta == 0) {

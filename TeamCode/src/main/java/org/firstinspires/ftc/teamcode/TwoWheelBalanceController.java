@@ -68,7 +68,7 @@ public class TwoWheelBalanceController {
     private final ElapsedTime runtime = new ElapsedTime(); // Timer used to check loop times
     // The variables below are to try to get a consistent delta time for the controller.
     // Not sure how well this works. Don't know how to make it better without different runtime env.
-    private final RunningAverage deltaTimeRA = new RunningAverage(6);
+    private final RunningAverageArray deltaTimeRA = new RunningAverageArray(6,false);
     private double currentTime;
     private double lastTime;
     private double deltaTime = 0.04; // initialize, replaced by a running average
@@ -86,7 +86,7 @@ public class TwoWheelBalanceController {
     public TwoWheelBalanceController(HardwareMap hardwareMap, double wheelBase, double wheelDia,
                                      double ticksPerMM, double kp, double ki, double kd) {
 
-        deltaTimeRA.addNumber(0.04); // add to running average to smooth the start??
+        deltaTimeRA.add(0.04); // add to running average to smooth the start??
 
         // Define and Initialize Motors
         leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
@@ -97,12 +97,13 @@ public class TwoWheelBalanceController {
 
         resetMotors();
 
-        odometry = new TWBOdometry(wheelBase, wheelDia, 0,7,3); // create odometry object
-        TICKSPERMM = ticksPerMM;
-
+        // initialize IMU before odometry, because odometry needs pitch
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)));
+
+        odometry = new TWBOdometry(wheelBase, wheelDia, getPitch(),7,3); // create odometry object
+        TICKSPERMM = ticksPerMM;
 
         yawPID = new PIDController(kp, ki, kd); // kp 0.45, ki 0.12, kd 0.05
 
@@ -234,7 +235,7 @@ public class TwoWheelBalanceController {
         deltaTime = currentTime - lastTime;
         if(deltaTime > 0.05) deltaTime = 0.05; // fake!
         // add the new delta time to the running average
-        deltaTimeRA.addNumber(deltaTime);
+        deltaTimeRA.add(deltaTime);
         deltaTime = deltaTimeRA.getAverage(); // replace deltaTime with running average delta time
     }
     public double getDeltaTime() {return deltaTime;}

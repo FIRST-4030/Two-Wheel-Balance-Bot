@@ -28,4 +28,16 @@ public class Angles {
         else if (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
         return deltaAngle;
     }
+
+    /**
+     * Normalizes an angle to the range [-pi, pi].
+     *
+     * @param angle The angle to normalize (in radians).
+     * @return The normalized angle (in radians).
+     */
+    private double normalizeAngle(double angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle < -Math.PI) angle += 2 * Math.PI;
+        return angle;
+    }
 }
