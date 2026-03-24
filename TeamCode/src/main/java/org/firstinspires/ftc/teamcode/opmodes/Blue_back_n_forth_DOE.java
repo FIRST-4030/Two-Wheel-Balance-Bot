@@ -29,7 +29,7 @@ public class Blue_back_n_forth_DOE extends OpMode {
     private final double SETTLE_TIME = 5.0; // sec
     private final double ARMANGLE = -90.0;
 
-    // Modify the Terms in init()
+    // Initialize the Terms in init()
     private Term PITCH1;
     private Term PITCH2;
     private Term PITCH3;
@@ -58,9 +58,9 @@ public class Blue_back_n_forth_DOE extends OpMode {
         twb.writeDatalog("BlueBnFDOEfull");
 
         // MODIFY THESE FOR THE EXPERIMENTS.
-        PITCH1 = new Term(-2.5, -1.5, 3, twb.getPos());
-        PITCH2 = new Term(-2.5, -1.5, 2, twb.getPitch());
-        PITCH3 = new Term(-0.5, 0.0, 2, twb.getVelocity());
+        PITCH1 = new Term(-1.5, -1.0, 3, twb.getPos());
+        PITCH2 = new Term(-3.0, -2.5, 2, twb.getVelocity());
+        PITCH3 = new Term(-1.0, 0.0, 2, twb.getPitch());
 
         NEXPERIMENTS = PITCH1.getN() * PITCH2.getN() * PITCH3.getN();
 

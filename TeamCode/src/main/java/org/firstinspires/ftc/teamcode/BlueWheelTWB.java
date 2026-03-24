@@ -52,11 +52,12 @@ public class BlueWheelTWB {
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.018,0.014,-0.54,-0.026);
+        TWBController.setBalanceTerms(0.018,0.014,-0.54,-0.028);
 
         // Initialize the arm class
         // Determine servo values for two angle using the ServoTester opmode
-        theArm = new ArmServo(hardwareMap, "arm_servo", 0.25, 90, 0.68, -90, 40);
+        theArm = new ArmServo(hardwareMap, "arm_servo", 0.25, 90,
+                0.68, -90, 40);
         theArm.setLimits(ARMMIN, ARMMAX); // physical limits to keep from breaking things
 
         /*

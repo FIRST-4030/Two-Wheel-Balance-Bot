@@ -52,11 +52,11 @@ public class TWBMoves {
         //   using an ... manually derived curve.  Trial and error...
         pitchVector.debug = false;
         pitchVector.addElement(.00,.00);
-        pitchVector.addElement(.02,-2.0); // DOE
+        pitchVector.addElement(.2,-1.5); // DOE
         //pitchVector.addElement(.02,0.0);
-        pitchVector.addElement(.5,-2.0);    // DOE
+        pitchVector.addElement(.5,-2.7);  // DOE
         //pitchVector.addElement(.95,0.0);
-        pitchVector.addElement(.95,0.0);   // DOE
+        pitchVector.addElement(.8,0.0);   // DOE
         pitchVector.addElement(1.00,.00);
     }
 
