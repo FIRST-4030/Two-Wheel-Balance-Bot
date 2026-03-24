@@ -52,9 +52,22 @@ public class TWBMoves {
         //   using an ... manually derived curve.  Trial and error...
         pitchVector.debug = false;
         pitchVector.addElement(.00,.00);
-        pitchVector.addElement(.05,-1.20); // determined by test
-        pitchVector.addElement(.75,0.0);
+        pitchVector.addElement(.02,-2.0); // DOE
+        //pitchVector.addElement(.02,0.0);
+        pitchVector.addElement(.5,-2.0);    // DOE
+        //pitchVector.addElement(.95,0.0);
+        pitchVector.addElement(.95,0.0);   // DOE
         pitchVector.addElement(1.00,.00);
+    }
+
+    /**
+     * Set the Pitch Profile for the back-n-forth DOE
+     * @param newYs new values for the pitch piecewise curve, indicated above
+     */
+    public void setPitchVector(double[] newYs) {
+        pitchVector.setElement(1, 0.01,newYs[0]);
+        pitchVector.setElement(2, 0.5,newYs[1]);
+        pitchVector.setElement(3, 0.975,newYs[2]);
     }
 
     /**

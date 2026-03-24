@@ -18,25 +18,24 @@ public class Angles {
     /**
      * NoSpinAngle adds a limited angle (from IMU) to a continuous angle to avoid the spin bug.
      * @param continuousAngle the continuous angle
-     * @param newAngle the limited angle from -2*PI to 2*PI
+     * @param newAngle the IMU angle from -2*PI to 2*PI
      * @return the updates continuous angle
      */
-    public double NoSpinAngle(double continuousAngle, double newAngle) {
+    public static double NoSpinAngle(double continuousAngle, double newAngle) {
         double deltaAngle = newAngle - continuousAngle;
 
-        if (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
+        if (deltaAngle >= Math.PI) deltaAngle -= 2 * Math.PI;
         else if (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
         return deltaAngle;
     }
-
     /**
      * Normalizes an angle to the range [-pi, pi].
      *
      * @param angle The angle to normalize (in radians).
      * @return The normalized angle (in radians).
      */
-    private double normalizeAngle(double angle) {
-        while (angle > Math.PI) angle -= 2 * Math.PI;
+    public static double normalizeAngle(double angle) {
+        while (angle >= Math.PI) angle -= 2 * Math.PI;
         while (angle < -Math.PI) angle += 2 * Math.PI;
         return angle;
     }

@@ -13,8 +13,8 @@ public class Term {
     private double min;  // Place to store a minimum response for a degree of freedom
     private double max; // Place to store a minimum response for a degree of freedom
 
-    private double targetValue; // Target Value (not the term value)
-    private double valueArea; // Integrated area of the value-target for the experiment time
+    //private double targetValue; // Target Value (not the term value)
+    private double sum; // Integrated area of the value-target for the experiment time
     public Term(double lowest, double highest, int number, double original) {
         this.low = lowest;
         this.high = highest;
@@ -51,10 +51,10 @@ public class Term {
     public void setMin(double min) { this.min = min; }
     public double getMax() { return max;  }
     public void setMax(double max) { this.max = max;  }
-    public void setTargetValue(double value) {this.targetValue = value;}
-    public void resetTargetArea() {this.valueArea = 0.0;}
-    public void updateTargetArea(double current, double deltaTime) {
-        this.valueArea += Math.abs(current-targetValue)*deltaTime;
+    //public void setTargetValue(double value) {this.targetValue = value;}
+    public void resetSum() {this.sum = 0.0;}
+    public void updateSum(double current, double target, double deltaTime) {
+        this.sum += Math.abs(current-target)*deltaTime;
     }
-    public double getValueArea() {return this.valueArea;}
+    public double getSum() {return this.sum;}
 }

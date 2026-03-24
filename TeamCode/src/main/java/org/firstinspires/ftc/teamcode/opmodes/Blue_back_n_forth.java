@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.TWBMoves;
  * Moves forward, moves back.
  * Used for developing motion profiles.
  */
-@Autonomous(name="Blue TWB Back and Forth")
+@Autonomous(name="Blue Back and Forth")
 //@Disabled
 public class Blue_back_n_forth extends OpMode {
     private BlueWheelTWB twb;

@@ -19,9 +19,7 @@ class element {
         setY(newY);
     }
 
-    public double getX() {
-        return x;
-    }
+    public double getX() { return x; }
 
     public double getY() {
         return y;

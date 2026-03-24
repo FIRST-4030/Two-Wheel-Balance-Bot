@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import static org.firstinspires.ftc.teamcode.Angles.shortestAngleDifference;
-
 import android.annotation.SuppressLint;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Angles;
 import org.firstinspires.ftc.teamcode.BlueWheelTWB;
 import org.firstinspires.ftc.teamcode.RunningAverageArray;
 
@@ -85,7 +84,7 @@ public class Blue_Tele_Field_Centric extends OpMode
 
         if (speed1 > 0.02) {
             double yaw1 = Math.atan2(right, forward);
-            double shortestYawMove = shortestAngleDifference(yaw1, twb.getYawTarget()); // radians
+            double shortestYawMove = Angles.shortestAngleDifference(yaw1, twb.getYawTarget()); // radians
 
             // Adjust yawTarget, with constraint on how much. The TWB yaw PID controller does the rest
             double MAXDELTARAD = 0.08; // YAW Maximum Delta Radians update per loop

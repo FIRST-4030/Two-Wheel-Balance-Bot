@@ -25,7 +25,7 @@ public class Blue_Set_Arm_Angle_Pitch extends OpMode {
 
     private double ARMANGLE = -20.0;
     private RunningAverageArray robotPos; // to provide steady position telemetry in init
-    private double pitchFuzz = 0.0;
+    private double pitchFuzz = 0.8;
 
     /**
      * Code to run ONCE when the driver hits INIT
@@ -39,6 +39,8 @@ public class Blue_Set_Arm_Angle_Pitch extends OpMode {
         robotPos = new RunningAverageArray(150,true); // for robot position telemetry
 
         twb.setArmAngle(ARMANGLE); // gets the latest state of the robot before running
+
+        twb.start();
     }
 
     /**
@@ -87,6 +89,8 @@ public class Blue_Set_Arm_Angle_Pitch extends OpMode {
     public void loop() {
 
         twb.loop(this);  // CALL MAIN TWB CONTROL SYSTEM
+
+        telemetry.addData("Pitch  FUZZ (deg)"," %.1f", pitchFuzz);
 
         robotPos.add(twb.getPos()); // for telemetry only
         telemetry.addData("Robot Position (mm) (Averaged)","  %.1f", robotPos.getAverage());

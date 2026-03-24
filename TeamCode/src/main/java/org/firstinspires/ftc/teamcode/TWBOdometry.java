@@ -111,22 +111,9 @@ public class TWBOdometry {
         }
 
         // Normalize theta to the range [-pi, pi]
-        theta = normalizeAngle(theta);
+        theta = Angles.normalizeAngle(theta);
     }
 
-    /**
-     * Normalizes an angle to the range [-pi, pi].
-     *
-     * @param angle The angle to normalize (in radians).
-     * @return The normalized angle (in radians).
-     */
-    private double normalizeAngle(double angle) {
-        while (angle > Math.PI) angle -= 2 * Math.PI;
-        while (angle < -Math.PI) angle += 2 * Math.PI;
-        return angle;
-    }
-
-    // Getters for position and orientation
     public double getX() {
         return x;
     }

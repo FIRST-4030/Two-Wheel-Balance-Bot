@@ -82,9 +82,12 @@ public class TwoWheelBalanceController {
      * @param kp Yaw PID Kp term
      * @param ki Yaw PID Ki term
      * @param kd Yaw PID Kd term
+     * @param NVelo Size of running average array for robot velocity
+     * @param NDist Size of running average array for robot odometry distance
       */
     public TwoWheelBalanceController(HardwareMap hardwareMap, double wheelBase, double wheelDia,
-                                     double ticksPerMM, double kp, double ki, double kd) {
+                                     double ticksPerMM, double kp, double ki, double kd,
+                                     int NVelo, int NDist) {
 
         deltaTimeRA.add(0.04); // add to running average to smooth the start??
 
@@ -102,10 +105,10 @@ public class TwoWheelBalanceController {
         imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)));
 
-        odometry = new TWBOdometry(wheelBase, wheelDia, getPitch(),7,3); // create odometry object
+        odometry = new TWBOdometry(wheelBase, wheelDia, getPitch(),NVelo,NDist); // create odometry object
         TICKSPERMM = ticksPerMM;
 
-        yawPID = new PIDController(kp, ki, kd); // kp 0.45, ki 0.12, kd 0.05
+        yawPID = new PIDController(kp, ki, kd);
 
         yawPID.setSetpoint(0.0);    // initial yaw (yawTarget) is zero.
     }
@@ -142,13 +145,6 @@ public class TwoWheelBalanceController {
         // reset the PIDs
         yawPID.reset();
     }
-    /**
-     *  Return the pitch from the IMU
-     */
-    public double getPitch() {
-        orientation = imu.getRobotYawPitchRollAngles();
-        return orientation.getPitch(AngleUnit.DEGREES);
-    }
 
     private void resetMotors() {
         // reset the encoders
@@ -174,6 +170,7 @@ public class TwoWheelBalanceController {
         // get values from the IMU
         orientation = imu.getRobotYawPitchRollAngles();
         //yaw = orientation.getYaw(AngleUnit.DEGREES);
+        double rawYaw = orientation.getYaw(AngleUnit.RADIANS);
         angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
         pitch = orientation.getPitch(AngleUnit.DEGREES);
         pitchRATE = angularVelocity.xRotationRate;
@@ -196,8 +193,8 @@ public class TwoWheelBalanceController {
 
         // The following controls the turn (yaw) of the robot
         // IMU getYaw always returns value from -2*PI to 2*PI
-        double rawYaw = orientation.getYaw(AngleUnit.RADIANS);
-        // The code below makes "yaw" a continuous value TO DO: MAKE THIS A METHOD
+        // TO BE REPLACED BY Angles.nospinangle
+        // The code below makes "yaw" a continuous value
         double deltaYaw = rawYaw - rawPriorYaw;
         rawPriorYaw = rawYaw;
         if (deltaYaw > Math.PI) deltaYaw -= 2 * Math.PI;
@@ -217,7 +214,7 @@ public class TwoWheelBalanceController {
         rightDrive.setPower(totalPowerVolts / currentVoltage + yawPower);
 
         // kill the robot if it pitches over too far or runs fast when not asked to
-        if (Math.abs(pitch) > 90  || (Math.abs(linearVelocity) > 1500 && Math.abs(veloTarget) < 50)) {
+        if (Math.abs(pitch) > 90  || (Math.abs(linearVelocity) > 1300 && Math.abs(veloTarget) < 50)) {
             theOpmode.requestOpModeStop(); // Stop the opmode
         }
     }
@@ -226,6 +223,8 @@ public class TwoWheelBalanceController {
         imu.resetYaw();
         yawTarget = 0.0;
         yaw = 0.0;
+        priorYaw = 0.0;
+        rawPriorYaw = 0.0;
         yawPID.reset();
     }
     private void setLoopTime () {
@@ -262,6 +261,7 @@ public class TwoWheelBalanceController {
     public void setKpitch(double k) {Kpitch = k;}
     public void setKpitchRate(double k) {KpitchRate=k;}
     public void setKvelo(double k) {Kvelo = k;}
-    public double getYaw() {return yaw;  }
+    public double getYaw() {return yaw; }
+    public double getPitch() { return pitch;}
     public double getPitchRate() {return pitchRATE;}
 }

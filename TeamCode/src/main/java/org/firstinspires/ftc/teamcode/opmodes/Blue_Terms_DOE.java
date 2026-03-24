@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.BlueWheelTWB;
-import org.firstinspires.ftc.teamcode.DatalogTWB;
 import org.firstinspires.ftc.teamcode.Datalogger;
 import org.firstinspires.ftc.teamcode.RunningAverageArray;
 import org.firstinspires.ftc.teamcode.Term;
@@ -41,13 +40,12 @@ public class Blue_Terms_DOE extends OpMode {
     // Internal variables
     private int count = 1; // for counting the DOE
     private int NEXPERIMENTS; // total experiments, set in init
-    private DatalogTWB datalogTWB; // datalog for full recording
 
     private DatalogEXP datalogEXP;  // data logger for experiments
 
     private RunningAverageArray robotPos; // to provide steady position telemetry in init
 
-    private double pitchFuzz = 0.0;
+    private double pitchFuzz = 0.8;
 
     /**
      * Code to run ONCE when the driver hits INIT
@@ -57,17 +55,17 @@ public class Blue_Terms_DOE extends OpMode {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
         // NOTE: TWO datalogs can be written!
-        // Load this log into a spreadsheet, filter, and sort for the lowest score.
+        // Load "terms" log into a spreadsheet, filter, and sort for the lowest score.
         datalogEXP = new DatalogEXP("BlueDOEterms");
 
-        twb.writeDatalog("BlueDOEFull"); // This one is optional and bigger
+        twb.writeDatalog("BlueDOEFull"); // This log will be bigger
 
         twb.closeClaw(); // close the claw
 
         // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
-        Kpos = new Term(0.015,0.017,3,twb.getKpos());
-        Kpitch = new Term(-0.58,-0.54,3,twb.getKpitch());
-        Kvelo = new Term(0.016,0.018,3,twb.getKvelo());  // 0.020 breaks bot
+        Kpos = new Term(0.016,0.020,3,twb.getKpos());
+        Kpitch = new Term(-0.56,-0.52,3,twb.getKpitch());
+        Kvelo = new Term(0.012,0.018,3,twb.getKvelo());  // 0.020 breaks bot
         KpitchRate = new Term(-0.028,-0.022,3,twb.getKpitchRate());
 
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
@@ -84,6 +82,8 @@ public class Blue_Terms_DOE extends OpMode {
         communication bandwidth usage,
          */
         telemetry.setMsTransmissionInterval(500);
+
+        twb.start();
     }
 
     /**
@@ -114,11 +114,11 @@ public class Blue_Terms_DOE extends OpMode {
      */
     @Override
     public void start() {
-        twb.start();
+        //twb.start();
         resetRuntime();
         moveTimer.reset();
-        Kpos.setTargetValue(0.0); // target position of the robot is zero
-        Kpitch.setTargetValue(twb.getPitchTarget());
+        //Kpos.setTargetValue(0.0); // target position of the robot is zero
+        //Kpitch.setTargetValue(twb.getPitchTarget());
     }
 
     /**
@@ -149,7 +149,7 @@ public class Blue_Terms_DOE extends OpMode {
             // during the experiment, after the jiggle, record min/max
             if(moveTimer.seconds() > 0.3) {
                 double thisPos = twb.getPos();
-                double thisPitch = twb.getPitch(); // this calls IMU which might be slow
+                double thisPitch = twb.getPitch();
                 double thisDT = twb.getDeltaTime();
 
                 // build the minimum amplitude "box" on the position wave
@@ -159,8 +159,8 @@ public class Blue_Terms_DOE extends OpMode {
                 Kpitch.updateMinMax(thisPitch);
 
                 // Integrate the position and pitch errors over time
-                Kpos.updateTargetArea(thisPos, thisDT);
-                Kpitch.updateTargetArea(thisPitch, thisDT);
+                Kpos.updateSum(thisPos, 0.0,thisDT);
+                Kpitch.updateSum(thisPitch, twb.getPitchTarget(),thisDT);
             }
 
         } else if(moveTimer.seconds() > testDuration) {
@@ -180,12 +180,12 @@ public class Blue_Terms_DOE extends OpMode {
             datalogEXP.ampPos.set(ampPos);
             double AvgPos = (Kpos.getMin() + Kpos.getMax())/2.0;
             datalogEXP.AvgPos.set(AvgPos);
-            datalogEXP.PosError.set(Kpos.getValueArea());
+            datalogEXP.PosError.set(Kpos.getSum());
             datalogEXP.minPitch.set(Kpitch.getMin());
             datalogEXP.maxPitch.set(Kpitch.getMax());
             double ampPitch = Kpitch.getMax() - Kpitch.getMin();
             datalogEXP.ampPitch.set(ampPitch);
-            datalogEXP.PitchError.set(Kpitch.getValueArea());
+            datalogEXP.PitchError.set(Kpitch.getSum());
             datalogEXP.score.set(ampPitch*4.0+ampPos+Math.abs(AvgPos)); // low score wins!
 
             // The logged timestamp is taken when writeLine() is called.
@@ -209,8 +209,8 @@ public class Blue_Terms_DOE extends OpMode {
 
             Kpos.resetMinMax();
             Kpitch.resetMinMax();
-            Kpos.resetTargetArea();
-            Kpitch.resetTargetArea();
+            Kpos.resetSum();
+            Kpitch.resetSum();
         }
 
         twb.loop(this);  // CALL MAIN TWB CONTROL SYSTEM

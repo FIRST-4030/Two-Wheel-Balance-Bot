@@ -30,7 +30,7 @@ public class BlueWheelTWB {
     private boolean writeDatalog = false; // default is no log.  call method to write.
 
     /**
-     * TWB Constructor.  Call once in initialization.
+     * TWB Constructor.  Call once.
       */
     public BlueWheelTWB(HardwareMap hardwareMap) {
 
@@ -40,8 +40,8 @@ public class BlueWheelTWB {
         // WHEELDIA = 203.0; // 8 inch wheel diameter (mm)
         // TICKSPERMM = (1120)/(203*Math.PI) = 1.75619; // REV SPUR 40:1, 8in wheels
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
-        TWBController = new TwoWheelBalanceController(hardwareMap, 300.0, 203.0, 1.75619,
-                0.45, 0.0, 0.05);
+        TWBController = new TwoWheelBalanceController(hardwareMap, 300.0, 203.0,
+                1.75619, 0.45, 0.0, 0.05, 7, 3);
 
         VoltageSensor battery = hardwareMap.voltageSensor.get("Control Hub");
         // Get the current voltage, so that balance control is more consistent
@@ -52,11 +52,11 @@ public class BlueWheelTWB {
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.018,0.017,-0.59,-0.021);
+        TWBController.setBalanceTerms(0.018,0.014,-0.54,-0.026);
 
         // Initialize the arm class
         // Determine servo values for two angle using the ServoTester opmode
-        theArm = new ArmServo(hardwareMap, "arm_servo", 0.25, 90, 0.68, -90, 30);
+        theArm = new ArmServo(hardwareMap, "arm_servo", 0.25, 90, 0.68, -90, 40);
         theArm.setLimits(ARMMIN, ARMMAX); // physical limits to keep from breaking things
 
         /*
@@ -190,7 +190,8 @@ public class BlueWheelTWB {
         TWBController.setPosTarget( TWBController.getPosTarget() - forward * mmPerLoop );
 
         // Update the velocity target (mm/sec)
-        TWBController.setVeloTarget( -forward*(mmPerLoop/TWBController.getDeltaTime()));
+        TWBController.setVeloTarget( -forward*(mmPerLoop/0.025));
+        //TWBController.setVeloTarget( -forward*(mmPerLoop/TWBController.getDeltaTime()));
     }
     @SuppressLint("DefaultLocale")
     public void writeTelemetry(OpMode om) {
@@ -217,6 +218,7 @@ public class BlueWheelTWB {
     public void setVeloTarget(double velo) {TWBController.setVeloTarget(velo);}
     public double getPos() {return TWBController.getPosition();}
     public double getPosTarget() {return TWBController.getPosTarget();}
+    public double getVelocity() {return TWBController.getVelocity();}
     public double getPitch() {return TWBController.getPitch();}
     public double getPitchTarget() {return TWBController.getPitchTarget();}
     public double getPitchRate() {return TWBController.getPitchRate();}
