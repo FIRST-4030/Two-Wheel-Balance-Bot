@@ -21,11 +21,12 @@ import org.firstinspires.ftc.teamcode.Term;
 //@Disabled
 public class Blue_back_n_forth_DOE extends OpMode {
     private BlueWheelTWB twb;
-    final private TWBMoves myTWBmoves = new TWBMoves(); // used for auto
-    final private ElapsedTime moveTimer = new ElapsedTime();
-    private double currentPos;
     private final double DIST = 1000; // mm
     private final double DIST_TIME = 3.5; // sec
+    final private TWBMoves myTWBmoves = new TWBMoves(DIST_TIME,DIST); // used for auto
+    final private ElapsedTime moveTimer = new ElapsedTime();
+    private double currentPos;
+
     private final double SETTLE_TIME = 5.0; // sec
     private final double ARMANGLE = -90.0;
 
@@ -109,7 +110,7 @@ public class Blue_back_n_forth_DOE extends OpMode {
                 break;
             case MOVE1:
                 if (moveTimer.seconds() <= DIST_TIME) {
-                    newTargets = myTWBmoves.lineMove(DIST, DIST_TIME, moveTimer.seconds(), currentPos);
+                    newTargets = myTWBmoves.lineMove(moveTimer.seconds(), currentPos);
                     twb.setPosTarget(newTargets[0]);
                     twb.setAutoPitchTarget(newTargets[1]);
                     twb.setVeloTarget(newTargets[2]);
@@ -125,7 +126,7 @@ public class Blue_back_n_forth_DOE extends OpMode {
                 break;
             case MOVE2:
                 if (moveTimer.seconds() <= DIST_TIME) {
-                    newTargets = myTWBmoves.lineMove(DIST, DIST_TIME, moveTimer.seconds(), currentPos);
+                    newTargets = myTWBmoves.lineMove(moveTimer.seconds(), currentPos);
                     twb.setPosTarget(newTargets[0]);
                     twb.setAutoPitchTarget(newTargets[1]);
                     twb.setVeloTarget(newTargets[2]);

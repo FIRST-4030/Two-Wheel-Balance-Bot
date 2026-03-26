@@ -52,7 +52,7 @@ public class BlueWheelTWB {
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.018,0.014,-0.54,-0.028);
+        TWBController.setBalanceTerms(0.018,0.016,-0.58,-0.025);
 
         // Initialize the arm class
         // Determine servo values for two angle using the ServoTester opmode
@@ -99,7 +99,7 @@ public class BlueWheelTWB {
      */
     public void auto_right_loop() {
         // Check which way the robot is leaning and rotate the arm so that it will self-right
-        if (TWBController.getPitch() > 0.0) theArm.setArmAngle(ARMMAX);
+        if (TWBController.getNewPitch() > 0.0) theArm.setArmAngle(ARMMAX);
         else theArm.setArmAngle(ARMMIN);
 
         theArm.updateArm(TWBController.getDeltaTime()); // This will make the arm move
@@ -203,7 +203,8 @@ public class BlueWheelTWB {
         om.telemetry.addLine(String.format("Pitch Target %.1f ,Current %.1f (degrees)",
                 TWBController.getPitchTarget(),TWBController.getPitch()));
         om.telemetry.addLine(String.format("Arm Angle Target %.1f ,Current %.1f (degrees)",
-                theArm.getTargetAngle(),theArm.getAngle()));}
+                theArm.getTargetAngle(),theArm.getAngle()));
+    }
 
     public void closeClaw() {ClawIsClosed = true;}
     public double getKpos() {return TWBController.getKpos();}

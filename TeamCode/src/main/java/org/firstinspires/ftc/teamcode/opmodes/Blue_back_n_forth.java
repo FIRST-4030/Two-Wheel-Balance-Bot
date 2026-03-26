@@ -17,11 +17,12 @@ import org.firstinspires.ftc.teamcode.TWBMoves;
 //@Disabled
 public class Blue_back_n_forth extends OpMode {
     private BlueWheelTWB twb;
-    final private TWBMoves myTWBmoves = new TWBMoves(); // used for auto
-    final private ElapsedTime moveTimer = new ElapsedTime();
-    private double currentPos;
     private final double DIST = 1000; // mm
     private final double DIST_TIME = 2.8; // sec
+    final private TWBMoves myTWBmoves = new TWBMoves(DIST_TIME,DIST); // used for auto
+    final private ElapsedTime moveTimer = new ElapsedTime();
+    private double currentPos;
+
     private final double SETTLE_TIME = 1.0; // sec
 
     enum State {
@@ -44,9 +45,10 @@ public class Blue_back_n_forth extends OpMode {
     @Override
     public void init_loop() {
         telemetry.addLine("BLUE TWO WHEEL BOT INIT ");
-        telemetry.addLine("BACK AND FORTH MOTION PROFILING");
+        //telemetry.addLine("BACK AND FORTH MOTION PROFILING");
 
-        telemetry.addLine("ROBOT MOVING INTO POSITION TO START");
+        //telemetry.addLine("ROBOT MOVING INTO POSITION TO START");
+        myTWBmoves.writeTelemetry(this);
 
         twb.auto_right_loop(); // gets the robot into a position to self right
 
@@ -76,7 +78,7 @@ public class Blue_back_n_forth extends OpMode {
                 break;
             case MOVE1:
                 if (getRuntime() <= (SETTLE_TIME +DIST_TIME) ) {
-                    newTargets = myTWBmoves.lineMove(DIST,DIST_TIME, moveTimer.seconds(),currentPos);
+                    newTargets = myTWBmoves.lineMove(moveTimer.seconds(),currentPos);
                     twb.setPosTarget(newTargets[0]);
                     twb.setAutoPitchTarget(newTargets[1]);
                     twb.setVeloTarget(newTargets[2]);
@@ -92,7 +94,7 @@ public class Blue_back_n_forth extends OpMode {
                      moveTimer.reset();
                  } else if (getRuntime() <= (2*SETTLE_TIME + 2*DIST_TIME)) {
                          myTWBmoves.reverseDir = true;
-                         newTargets = myTWBmoves.lineMove(DIST,DIST_TIME, moveTimer.seconds(),currentPos);
+                         newTargets = myTWBmoves.lineMove(moveTimer.seconds(),currentPos);
                          twb.setPosTarget(newTargets[0]);
                          twb.setAutoPitchTarget(newTargets[1]);
                          twb.setVeloTarget(newTargets[2]);

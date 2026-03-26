@@ -263,5 +263,11 @@ public class TwoWheelBalanceController {
     public void setKvelo(double k) {Kvelo = k;}
     public double getYaw() {return yaw; }
     public double getPitch() { return pitch;}
+    public double getNewPitch() {
+        // get values from the IMU.  Much slower than getPitch.
+        orientation = imu.getRobotYawPitchRollAngles();
+        pitch = orientation.getPitch(AngleUnit.DEGREES);
+        return pitch;
+    }
     public double getPitchRate() {return pitchRATE;}
 }
