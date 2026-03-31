@@ -19,8 +19,12 @@ public class Term {
         this.low = lowest;
         this.high = highest;
         this.n = number;
-        if (n < 2) this.n = 2; // Minimum is 2;
-        this.increment = (this.high-this.low)/(this.n-1);
+        if (n <= 1) {
+            this.n = 1; // Minimum is 2;
+            this.increment = 0;
+        } else {
+            this.increment = (this.high-this.low)/(this.n-1);
+        }
         this.orig = original;
         this.setCurrent(low); // start with the low value
         resetMinMax();

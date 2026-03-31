@@ -30,16 +30,7 @@ public class Blue_Tele_Field_Centric extends OpMode
 
         twb.writeDatalog("BlueFieldCentric"); // needs to be part of constructor or something
 
-        speed = new RunningAverageArray(6,false); // initialize size of running average
-        /*
-        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge SDK controls
-        how frequently telemetry data is sent from the Robot Controller to the Driver Station
-        250 (milliseconds) is the default value and a good general-purpose interval.
-        100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates.
-        A lower interval provides a more real-time view of data on the Driver Station but
-        increases communication bandwidth usage,
-         */
-        telemetry.setMsTransmissionInterval(500);
+        speed = new RunningAverageArray(12,false); // initialize size of running average
     }
 
     /**
@@ -97,7 +88,7 @@ public class Blue_Tele_Field_Centric extends OpMode
             }
         }
 
-        twb.translateDrive(-speed.getAverage(),8,7);
+        twb.translateDrive(-speed.getAverage(),twb.MMPLoop,twb.DEGPLoop);
 
         twb.turn_teleop(gamepad1.right_stick_x * 0.04); // also can turn this way
 

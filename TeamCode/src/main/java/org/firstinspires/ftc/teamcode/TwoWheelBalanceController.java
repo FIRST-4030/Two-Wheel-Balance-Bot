@@ -182,7 +182,7 @@ public class TwoWheelBalanceController {
 
         // MAIN BALANCE CONTROL CODE:
         double posError = sOdom - posTarget;
-        double veloError = linearVelocity + veloTarget;
+        double veloError = linearVelocity - veloTarget; // was summed!!?
         positionVolts = Kvelo * veloError + Kpos * posError;
 
         pitchTarget = armPitchTarget + autoPitchTarget;
@@ -206,15 +206,16 @@ public class TwoWheelBalanceController {
         double yawPower = yawPID.compute(yaw);
 
         // limit the total volts
-        if (totalPowerVolts > 14) totalPowerVolts = 14;
-        else if (totalPowerVolts < -14) totalPowerVolts = -14;
+        //if (totalPowerVolts > 14) totalPowerVolts = 14;
+        //else if (totalPowerVolts < -14) totalPowerVolts = -14;
 
          // Set the motor power for both wheels
         leftDrive.setPower(totalPowerVolts / currentVoltage - yawPower);
         rightDrive.setPower(totalPowerVolts / currentVoltage + yawPower);
 
         // kill the robot if it pitches over too far or runs fast when not asked to
-        if (Math.abs(pitch) > 90  || (Math.abs(linearVelocity) > 1300 && Math.abs(veloTarget) < 50)) {
+        //if (Math.abs(pitch) > 90  || (Math.abs(linearVelocity) > 1400 && Math.abs(veloTarget) < 50)) {
+        if (Math.abs(pitch) > 90  || (Math.abs(linearVelocity) > 1400)) {
             theOpmode.requestOpModeStop(); // Stop the opmode
         }
     }

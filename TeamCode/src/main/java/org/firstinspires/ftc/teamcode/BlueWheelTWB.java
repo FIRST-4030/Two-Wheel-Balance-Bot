@@ -28,7 +28,8 @@ public class BlueWheelTWB {
     final private PiecewiseFunction pitchAngVec = new PiecewiseFunction();
     private DatalogTWB datalogTWB; // datalog for full recording
     private boolean writeDatalog = false; // default is no log.  call method to write.
-
+    public double MMPLoop = 8.0;
+    public double DEGPLoop = 1.0;
     /**
      * TWB Constructor.  Call once.
       */
@@ -52,7 +53,7 @@ public class BlueWheelTWB {
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.018,0.016,-0.58,-0.025);
+        TWBController.setBalanceTerms(0.016,0.015,-0.58,-0.025);
 
         // Initialize the arm class
         // Determine servo values for two angle using the ServoTester opmode
@@ -124,9 +125,6 @@ public class BlueWheelTWB {
 
         theArm.updateArm(TWBController.getDeltaTime()); // This will make the arm move
 
-        if (ClawIsClosed) clawServo.setPosition(CLAWCLOSE); // closed value (0.98 for blocks)
-        else clawServo.setPosition(CLAWOPEN); // open value (WAS 0.35)
-
         if (writeDatalog) {
             datalogTWB.logPosPitch(TWBController.getPosition(), TWBController.getPosTarget(),
                     TWBController.getVelocity(), TWBController.getVeloTarget(),TWBController.getPitch(),
@@ -152,16 +150,17 @@ public class BlueWheelTWB {
 
     /**
      * TWB method to provide user control of the claw.
-     * @param toggle boolean to switch the claw
+     * @param toggle boolean, switch the claw state if true
      */
     public void claw_teleop(boolean toggle) {
         //Controls the claw boolean
         if (toggle) {
-            if (ClawIsClosed)  ClawIsClosed = false; // open
+            if (ClawIsClosed)  openClaw(); // open
             else { // close
                 theArm.setArmAngle(theArm.getAngle() + 15.0);  // raise the arm a bit to avoid runaway
-                ClawIsClosed = true;
+                closeClaw();
             }
+            ClawIsClosed = !ClawIsClosed;
         }
     }
 
@@ -191,7 +190,7 @@ public class BlueWheelTWB {
         TWBController.setPosTarget( TWBController.getPosTarget() - forward * mmPerLoop );
 
         // Update the velocity target (mm/sec)
-        TWBController.setVeloTarget( -forward*(mmPerLoop/0.025));
+        //TWBController.setVeloTarget( -forward*(mmPerLoop/0.020));
         //TWBController.setVeloTarget( -forward*(mmPerLoop/TWBController.getDeltaTime()));
     }
     @SuppressLint("DefaultLocale")
@@ -206,7 +205,8 @@ public class BlueWheelTWB {
                 theArm.getTargetAngle(),theArm.getAngle()));
     }
 
-    public void closeClaw() {ClawIsClosed = true;}
+    public void closeClaw() {clawServo.setPosition(CLAWCLOSE);}
+    public void openClaw() {clawServo.setPosition(CLAWOPEN);}
     public double getKpos() {return TWBController.getKpos();}
     public double getKpitch() {return TWBController.getKpitch();}
     public double getKvelo() {return TWBController.getKvelo();}

@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.BlueWheelTWB;
-import org.firstinspires.ftc.teamcode.TWBMoves;
+import org.firstinspires.ftc.teamcode.TWBMove;
 
 /**
  * This Iterative Autonomous OpMode is for a Two Wheel Balancing Robot with Arm.
@@ -17,13 +17,13 @@ import org.firstinspires.ftc.teamcode.TWBMoves;
 //@Disabled
 public class Blue_back_n_forth extends OpMode {
     private BlueWheelTWB twb;
-    private final double DIST = 1000; // mm
-    private final double DIST_TIME = 2.8; // sec
-    final private TWBMoves myTWBmoves = new TWBMoves(DIST_TIME,DIST); // used for auto
+    private double DIST = 1000; // mm
+    private double TIME = 3.0; // sec
+    private TWBMove myTWBmoves;
     final private ElapsedTime moveTimer = new ElapsedTime();
     private double currentPos;
 
-    private final double SETTLE_TIME = 1.0; // sec
+    private final double SETTLE_TIME = 3.0; // sec
 
     enum State {
         START,
@@ -39,18 +39,25 @@ public class Blue_back_n_forth extends OpMode {
 
         twb.writeDatalog("BlueLogAutoBnF");
 
-        twb.closeClaw(); // close the claw
+        twb.closeClaw();
     }
 
     @Override
     public void init_loop() {
-        telemetry.addLine("BLUE TWO WHEEL BOT INIT ");
-        //telemetry.addLine("BACK AND FORTH MOTION PROFILING");
+        telemetry.addLine("BLUE TWB Back-n-Forth Auto INIT ");
 
-        //telemetry.addLine("ROBOT MOVING INTO POSITION TO START");
-        myTWBmoves.writeTelemetry(this);
+        if (gamepad1.dpadUpWasPressed()) DIST += 100.0;
+        else if (gamepad1.dpadDownWasPressed()) DIST -= 100.0;
+
+        if (gamepad1.dpadLeftWasPressed()) TIME += 0.25;
+        else if (gamepad1.dpadRightWasPressed()) TIME -= 0.25;
+        telemetry.addLine("DPAD UP - DOWN Adjusts the distance");
+        telemetry.addData("Travel Distance (mm)"," %.1f", DIST);
+        telemetry.addLine("DPAD LEFT - RIGHT Adjusts the time");
+        telemetry.addData("Travel Time (seconds) =", TIME);
 
         twb.auto_right_loop(); // gets the robot into a position to self right
+        twb.closeClaw();
 
         telemetry.update();
     }
@@ -58,6 +65,7 @@ public class Blue_back_n_forth extends OpMode {
     @Override
     public void start() {
         state = State.START;
+        myTWBmoves = new TWBMove(TIME,DIST);
         resetRuntime();
         moveTimer.reset();
         twb.start();
@@ -77,11 +85,11 @@ public class Blue_back_n_forth extends OpMode {
                 }
                 break;
             case MOVE1:
-                if (getRuntime() <= (SETTLE_TIME +DIST_TIME) ) {
+                if (getRuntime() <= (SETTLE_TIME + TIME) ) {
                     newTargets = myTWBmoves.lineMove(moveTimer.seconds(),currentPos);
                     twb.setPosTarget(newTargets[0]);
-                    twb.setAutoPitchTarget(newTargets[1]);
-                    twb.setVeloTarget(newTargets[2]);
+                    //twb.setAutoPitchTarget(newTargets[1]);
+                    //twb.setVeloTarget(newTargets[2]);
                 } else {
                     state = State.MOVE2;
                     moveTimer.reset();
@@ -89,22 +97,25 @@ public class Blue_back_n_forth extends OpMode {
                 }
                 break;
             case MOVE2:
-                 if (getRuntime() <= (SETTLE_TIME +DIST_TIME+ SETTLE_TIME)) {
+                 if (getRuntime() <= (SETTLE_TIME + TIME + SETTLE_TIME)) {
                      // Sit for a bit to let robot stabilize after opening claw
                      moveTimer.reset();
-                 } else if (getRuntime() <= (2*SETTLE_TIME + 2*DIST_TIME)) {
-                         myTWBmoves.reverseDir = true;
-                         newTargets = myTWBmoves.lineMove(moveTimer.seconds(),currentPos);
-                         twb.setPosTarget(newTargets[0]);
-                         twb.setAutoPitchTarget(newTargets[1]);
-                         twb.setVeloTarget(newTargets[2]);
+
+                 } else if (getRuntime() <= (2*SETTLE_TIME + 2* TIME)) {
+                     twb.openClaw();
+
+                     myTWBmoves.reverseDir = true;
+                     newTargets = myTWBmoves.lineMove(moveTimer.seconds(), currentPos);
+                     twb.setPosTarget(newTargets[0]);
+                     //twb.setAutoPitchTarget(newTargets[1]);
+                     //twb.setVeloTarget(newTargets[2]);
                  } else {
-                         state = State.DONE;
-                         moveTimer.reset();
+                     state = State.DONE;
+                     moveTimer.reset();
                  }
                 break;
             case DONE:
-                if (getRuntime() > (2*SETTLE_TIME + 2*DIST_TIME + 1) ) requestOpModeStop();
+                if (getRuntime() > (3*SETTLE_TIME + 2* TIME + 1) ) requestOpModeStop();
                 break;
         }
 

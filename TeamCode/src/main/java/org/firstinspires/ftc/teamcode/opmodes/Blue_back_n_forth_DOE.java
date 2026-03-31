@@ -3,13 +3,14 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.BlueWheelTWB;
 import org.firstinspires.ftc.teamcode.Datalogger;
-import org.firstinspires.ftc.teamcode.TWBMoves;
+import org.firstinspires.ftc.teamcode.TWBMove;
 import org.firstinspires.ftc.teamcode.Term;
 
 /**
@@ -18,12 +19,12 @@ import org.firstinspires.ftc.teamcode.Term;
  * Used for developing motion profiles in TWBMoves.java.  Specifically the Pitch profile.
  */
 @TeleOp(name="Blue Back and Forth DOE")
-//@Disabled
+@Disabled
 public class Blue_back_n_forth_DOE extends OpMode {
     private BlueWheelTWB twb;
     private final double DIST = 1000; // mm
-    private final double DIST_TIME = 3.5; // sec
-    final private TWBMoves myTWBmoves = new TWBMoves(DIST_TIME,DIST); // used for auto
+    private final double DIST_TIME = 3.0; // sec
+    final private TWBMove myTWBmoves = new TWBMove(DIST_TIME,DIST); // used for auto
     final private ElapsedTime moveTimer = new ElapsedTime();
     private double currentPos;
 
@@ -59,9 +60,11 @@ public class Blue_back_n_forth_DOE extends OpMode {
         twb.writeDatalog("BlueBnFDOEfull");
 
         // MODIFY THESE FOR THE EXPERIMENTS.
-        PITCH1 = new Term(-1.5, -1.0, 3, twb.getPos());
-        PITCH2 = new Term(-3.0, -2.5, 2, twb.getVelocity());
-        PITCH3 = new Term(-1.0, 0.0, 2, twb.getPitch());
+        //PITCH1 = new Term(1.5, -2.0, 8, twb.getPos());
+        PITCH1 = new Term(1.0, 1.2, 4, twb.getPos()); // scalar
+
+        PITCH2 = new Term(-8.0, -7.0, 1, twb.getVelocity()); // number was 2
+        PITCH3 = new Term(-5.0, -4.0, 1, twb.getPitch()); // number was 2
 
         NEXPERIMENTS = PITCH1.getN() * PITCH2.getN() * PITCH3.getN();
 
@@ -87,7 +90,8 @@ public class Blue_back_n_forth_DOE extends OpMode {
         moveTimer.reset();
         PITCH1.resetSum(); // holding the position sum
         PITCH2.resetSum(); // holding the velocity sum
-        myTWBmoves.setPitchVector(new double[] {PITCH1.getCurrent(),PITCH2.getCurrent(),PITCH3.getCurrent()} );
+        //myTWBmoves.setPitchCurve(new double[] {PITCH1.getCurrent(),PITCH2.getCurrent(),PITCH3.getCurrent()} );
+        myTWBmoves.newPitchCurveY(PITCH1.getCurrent());
     }
 
     @Override
@@ -114,8 +118,10 @@ public class Blue_back_n_forth_DOE extends OpMode {
                     twb.setPosTarget(newTargets[0]);
                     twb.setAutoPitchTarget(newTargets[1]);
                     twb.setVeloTarget(newTargets[2]);
-                    PITCH1.updateSum(twb.getPos(), newTargets[0], 0.020);
-                    PITCH2.updateSum(twb.getVelocity(),newTargets[2],0.020);
+                    if (moveTimer.seconds() <= DIST_TIME/2.0) {
+                        PITCH1.updateSum(twb.getPos(), newTargets[0], 0.020);
+                        PITCH2.updateSum(twb.getVelocity(),newTargets[2],0.020);
+                    }
                 } else {
                     myTWBmoves.reverseDir = true;
                     state = State.SETTLE1;
@@ -130,8 +136,10 @@ public class Blue_back_n_forth_DOE extends OpMode {
                     twb.setPosTarget(newTargets[0]);
                     twb.setAutoPitchTarget(newTargets[1]);
                     twb.setVeloTarget(newTargets[2]);
-                    PITCH1.updateSum(twb.getPos(), newTargets[0], 0.020);
-                    PITCH2.updateSum(twb.getVelocity(),newTargets[2],0.020);
+                    if (moveTimer.seconds() <= DIST_TIME/2.0) {
+                        PITCH1.updateSum(twb.getPos(), newTargets[0], 0.020);
+                        PITCH2.updateSum(twb.getVelocity(),newTargets[2],0.020);
+                    }
                 } else {
                     myTWBmoves.reverseDir = false;
                     state = State.SETTLE2;
@@ -173,7 +181,8 @@ public class Blue_back_n_forth_DOE extends OpMode {
             PITCH3.next();
         }
 
-        myTWBmoves.setPitchVector(new double[] {PITCH1.getCurrent(),PITCH2.getCurrent(),PITCH3.getCurrent()} );
+        //myTWBmoves.setPitchCurve(new double[] {PITCH1.getCurrent(),PITCH2.getCurrent(),PITCH3.getCurrent()} );
+        myTWBmoves.newPitchCurveY(PITCH1.getCurrent());
 
         count += 1;
     }
