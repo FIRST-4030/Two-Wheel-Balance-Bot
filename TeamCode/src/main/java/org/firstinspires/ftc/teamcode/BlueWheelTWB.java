@@ -53,7 +53,8 @@ public class BlueWheelTWB {
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.016,0.015,-0.58,-0.025);
+        TWBController.setBalanceTerms(0.020,0.018,-0.58,-0.028);
+        //                                  0.016       0.015       -0.58           -0.025
 
         // Initialize the arm class
         // Determine servo values for two angle using the ServoTester opmode
@@ -101,7 +102,7 @@ public class BlueWheelTWB {
     public void auto_right_loop() {
         // Check which way the robot is leaning and rotate the arm so that it will self-right
         if (TWBController.getNewPitch() > 0.0) theArm.setArmAngle(ARMMAX);
-        else theArm.setArmAngle(ARMMIN);
+        else theArm.setArmAngle(-125.0);  // -140 drives IMU pitch past zero, so using less arm angle
 
         theArm.updateArm(TWBController.getDeltaTime()); // This will make the arm move
     }

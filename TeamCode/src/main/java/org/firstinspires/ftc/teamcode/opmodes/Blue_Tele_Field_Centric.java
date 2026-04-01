@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -14,7 +15,7 @@ import org.firstinspires.ftc.teamcode.RunningAverageArray;
  * in Field Centric Mode mode.
  */
 @TeleOp(name="Blue TWB Tele Field Centric")
-//@Disabled
+@Disabled
 public class Blue_Tele_Field_Centric extends OpMode
 {
     // Declare OpMode members.

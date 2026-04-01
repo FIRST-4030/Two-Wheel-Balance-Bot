@@ -45,7 +45,7 @@ public class Blue_Terms_DOE extends OpMode {
 
     private RunningAverageArray robotPos; // to provide steady position telemetry in init
 
-    private double pitchFuzz = 0.8;
+    private double pitchFuzz = -1.5;
 
     /**
      * Code to run ONCE when the driver hits INIT
@@ -63,9 +63,10 @@ public class Blue_Terms_DOE extends OpMode {
         twb.closeClaw(); // close the claw
 
         // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
-        Kpos = new Term(0.014,0.018,3,twb.getKpos());
+        Kpos = new Term(0.018,0.022,3,twb.getKpos());
+        Kvelo = new Term(0.013,0.019,3,twb.getKvelo());  // 0.020 breaks bot
         Kpitch = new Term(-0.60,-0.56,3,twb.getKpitch());
-        Kvelo = new Term(0.012,0.018,3,twb.getKvelo());  // 0.020 breaks bot
+
         KpitchRate = new Term(-0.028,-0.022,3,twb.getKpitchRate());
 
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
@@ -186,7 +187,8 @@ public class Blue_Terms_DOE extends OpMode {
             double ampPitch = Kpitch.getMax() - Kpitch.getMin();
             datalogEXP.ampPitch.set(ampPitch);
             datalogEXP.PitchError.set(Kpitch.getSum());
-            datalogEXP.score.set(ampPitch*4.0+ampPos+Math.abs(AvgPos)); // low score wins!
+            //datalogEXP.score.set(ampPitch*4.0+ampPos+Math.abs(AvgPos)); // low score wins!
+            datalogEXP.score.set(Kpitch.getSum()*4.0+Kpos.getSum()); // low score wins!
 
             // The logged timestamp is taken when writeLine() is called.
             datalogEXP.writeLine();

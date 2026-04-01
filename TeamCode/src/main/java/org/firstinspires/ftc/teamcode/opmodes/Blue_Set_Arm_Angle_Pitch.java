@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -18,7 +19,7 @@ import org.firstinspires.ftc.teamcode.Term;
  *  Adjust the pitch and look for when the robots position is zero.
  */
 @TeleOp(name="Blue Set Arm Angle Pitch")
-//@Disabled
+@Disabled
 public class Blue_Set_Arm_Angle_Pitch extends OpMode {
     // Declare OpMode members.
     private BlueWheelTWB twb;

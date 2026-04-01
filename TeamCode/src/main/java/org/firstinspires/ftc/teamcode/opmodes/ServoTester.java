@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * @date 11/13/2025
  */
 @TeleOp(name = "ServoTester", group="Util")
-//@Disabled
+@Disabled
 public class ServoTester extends OpMode {
 
     String DEVICE_NAME = "arm_servo"; // can also be used for the claw servo
