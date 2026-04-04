@@ -63,10 +63,9 @@ public class Blue_Terms_DOE extends OpMode {
         twb.closeClaw(); // close the claw
 
         // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
-        Kpos = new Term(0.018,0.022,3,twb.getKpos());
-        Kvelo = new Term(0.013,0.019,3,twb.getKvelo());  // 0.020 breaks bot
-        Kpitch = new Term(-0.60,-0.56,3,twb.getKpitch());
-
+        Kpos = new Term(0.017,0.021,3,twb.getKpos());
+        Kvelo = new Term(0.015,0.019,3,twb.getKvelo());  // 0.020 breaks bot
+        Kpitch = new Term(-0.61,-0.57,3,twb.getKpitch());
         KpitchRate = new Term(-0.028,-0.022,3,twb.getKpitchRate());
 
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();

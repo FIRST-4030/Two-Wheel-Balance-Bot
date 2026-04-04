@@ -81,8 +81,7 @@ public class Blue_Tele extends OpMode
 
         twb.arm_teleop(gamepad1.right_stick_y);
 
-        // Set arm angle straight up. Sets arm angle target
-        if (gamepad1.left_bumper) twb.setArmAngle(0.0);
+        if (gamepad1.left_bumper) twb.clawWave();
 
         // Set arm angle to cargo collection. Sets arm angle target
         if (gamepad1.right_trigger_pressed) twb.setArmAngle(-120.0);

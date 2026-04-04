@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * Blue Wheeled Two Wheel Balancing Robot Class, with Arm.
@@ -18,6 +19,8 @@ public class BlueWheelTWB {
     private boolean ClawIsClosed = false; //Claw boolean
     private final double CLAWCLOSE = 1.0; // servo value for closed claw
     private final double CLAWOPEN = 0.3;  // servo value for open claw
+    private final ElapsedTime clawTimer = new ElapsedTime(); // Timer used with Claw
+
 
     //Handles the arm control, and adjusting the arm for the pitch of the robot
     private final ArmServo theArm;
@@ -108,10 +111,11 @@ public class BlueWheelTWB {
     }
 
     /**
-     * Start calls the TWB controller start, which does many things
+     * Start calls the TWB controller start
      */
     public void start() {
         TWBController.start();
+        clawTimer.reset();
     }
     /**
      * TWB Main Loop method.  Call repeatedly while running. Contains balance control logic.
@@ -157,12 +161,32 @@ public class BlueWheelTWB {
         //Controls the claw boolean
         if (toggle) {
             if (ClawIsClosed)  openClaw(); // open
-            else { // close
-                theArm.setArmAngle(theArm.getAngle() + 15.0);  // raise the arm a bit to avoid runaway
-                closeClaw();
+            else {
+                closeClaw();  // close
+                if (theArm.getAngle() < ARMMIN + 20.0) {
+                    theArm.setArmAngle(theArm.getAngle() + 15.0);  // raise arm a bit to avoid runaway
+                }
             }
             ClawIsClosed = !ClawIsClosed;
         }
+    }
+
+    /**
+     * continuously opens and closes the claw when called
+     */
+    public void clawWave() {
+        if (theArm.getAngle() > -100.0 && theArm.getAngle() < 100.0) {
+            if (ClawIsClosed && clawTimer.seconds() > 0.3) {
+                openClaw(); // open
+                clawTimer.reset();
+                ClawIsClosed = !ClawIsClosed;
+            } else if (clawTimer.seconds() > 0.3) {
+                closeClaw();
+                clawTimer.reset();
+                ClawIsClosed = !ClawIsClosed;
+            }
+        }
+
     }
 
     /**
@@ -204,6 +228,7 @@ public class BlueWheelTWB {
                 TWBController.getPitchTarget(),TWBController.getPitch()));
         om.telemetry.addLine(String.format("Arm Angle Target %.1f ,Current %.1f (degrees)",
                 theArm.getTargetAngle(),theArm.getAngle()));
+        om.telemetry.addData("Current Voltage   ",TWBController.getCurrentVoltage());
     }
 
     public void closeClaw() {clawServo.setPosition(CLAWCLOSE);}

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -61,7 +62,7 @@ public class TwoWheelBalanceController {
     private final IMU imu;
     private YawPitchRollAngles orientation;   // part of FIRST navigation classes
 
-    private double currentVoltage = 12.0; // This value is overridden with a measured value in start()
+    private double currentVoltage = 12.0; // This value is overridden  by set function
     private double positionVolts = 0.0;
     private double pitchVolts = 0.0;
 
@@ -89,6 +90,7 @@ public class TwoWheelBalanceController {
                                      double ticksPerMM, double kp, double ki, double kd,
                                      int NVelo, int NDist) {
 
+
         deltaTimeRA.add(0.04); // add to running average to smooth the start??
 
         // Define and Initialize Motors
@@ -111,6 +113,7 @@ public class TwoWheelBalanceController {
         yawPID = new PIDController(kp, ki, kd);
 
         yawPID.setSetpoint(0.0);    // initial yaw (yawTarget) is zero.
+
     }
 
     /**
@@ -250,6 +253,7 @@ public class TwoWheelBalanceController {
     public void setArmPitchTarget (double target) { armPitchTarget = target;   }
     public void setAutoPitchTarget (double target) { autoPitchTarget = target;   }
     public void setCurrentVoltage(double cv) { currentVoltage = cv;  }
+    public double getCurrentVoltage() {return currentVoltage;}
     public void setYawTarget(double yaw) { yawTarget = yaw; }
     public double getYawTarget() {return yawTarget;}
     public double getPositionVolts() { return positionVolts;}
