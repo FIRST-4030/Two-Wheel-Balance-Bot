@@ -213,8 +213,10 @@ public class TwoWheelBalanceController {
         //else if (totalPowerVolts < -14) totalPowerVolts = -14;
 
          // Set the motor power for both wheels
-        leftDrive.setPower(totalPowerVolts / currentVoltage - yawPower);
-        rightDrive.setPower(totalPowerVolts / currentVoltage + yawPower);
+//        leftDrive.setPower(totalPowerVolts / currentVoltage - yawPower);
+//        rightDrive.setPower(totalPowerVolts / currentVoltage + yawPower);
+        leftDrive.setPower(totalPowerVolts  - yawPower);
+        rightDrive.setPower(totalPowerVolts  + yawPower);
 
         // kill the robot if it pitches over too far or runs fast when not asked to
         //if (Math.abs(pitch) > 90  || (Math.abs(linearVelocity) > 1400 && Math.abs(veloTarget) < 50)) {

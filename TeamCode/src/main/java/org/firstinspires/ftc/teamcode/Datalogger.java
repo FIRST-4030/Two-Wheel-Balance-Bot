@@ -194,7 +194,7 @@ public class Datalogger
 
         public void set(float val)
         {
-            str = String.format("%.3f", val);
+            str = String.format("%.7f", val);
         }
 
         // 6-7-22 Add overloaded method with optional format parameter.
@@ -205,7 +205,7 @@ public class Datalogger
         
         public void set(double val)
         {
-            str = String.format("%.3f", val);
+            str = String.format("%.7f", val);
         }
         
         // 6-7-22 Add overloaded method with optional format parameter.

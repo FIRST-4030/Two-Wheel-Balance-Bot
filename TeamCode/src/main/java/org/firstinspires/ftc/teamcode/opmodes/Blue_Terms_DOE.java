@@ -63,11 +63,14 @@ public class Blue_Terms_DOE extends OpMode {
         twb.closeClaw(); // close the claw
 
         // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
-        Kpos = new Term(0.017,0.021,3,twb.getKpos());
-        Kvelo = new Term(0.015,0.019,3,twb.getKvelo());  // 0.020 breaks bot
-        Kpitch = new Term(-0.61,-0.57,3,twb.getKpitch());
-        KpitchRate = new Term(-0.028,-0.022,3,twb.getKpitchRate());
-
+//        Kpos = new Term(0.017,0.021,3,twb.getKpos());
+//        Kvelo = new Term(0.015,0.019,3,twb.getKvelo());  // 0.020 breaks bot
+//        Kpitch = new Term(-0.61,-0.57,3,twb.getKpitch());
+//        KpitchRate = new Term(-0.028,-0.022,3,twb.getKpitchRate());
+        Kpos = new Term(0.0017493,0.001821,3,twb.getKpos());
+        Kvelo = new Term(0.001225,0.001275,3,twb.getKvelo());
+        Kpitch = new Term(-0.049419,-0.047481,3,twb.getKpitch());
+        KpitchRate = new Term(-0.002083,-0.00200116,3,twb.getKpitchRate());
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
         robotPos = new RunningAverageArray(100,true); // for robot position telemetry
@@ -216,11 +219,11 @@ public class Blue_Terms_DOE extends OpMode {
 
         twb.loop(this);  // CALL MAIN TWB CONTROL SYSTEM
 
-        telemetry.addLine(String.format("EXPERIMENT %d ,OF TOTAL %d",count, NEXPERIMENTS));
-        telemetry.addData("Kposition", Kpos.getCurrent());
-        telemetry.addData("Kpitch", Kpitch.getCurrent());
-        telemetry.addData("Kvelo", Kvelo.getCurrent());
-        telemetry.addData("KpitchRate", KpitchRate.getCurrent());
+        telemetry.addLine(String.format("EXPERIMENT %d  OF TOTAL %d",count, NEXPERIMENTS));
+        telemetry.addData("Kposition","%.7f",Kpos.getCurrent());
+        telemetry.addData("Kpitch","%.7f", Kpitch.getCurrent());
+        telemetry.addData("Kvelo","%.7f", Kvelo.getCurrent());
+        telemetry.addData("KpitchRate","%.7f", KpitchRate.getCurrent());
 
         telemetry.update();
 
