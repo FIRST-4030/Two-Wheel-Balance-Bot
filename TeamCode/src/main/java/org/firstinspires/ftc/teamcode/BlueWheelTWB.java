@@ -263,5 +263,7 @@ public class BlueWheelTWB {
     public double getYawTarget() {return TWBController.getYawTarget();}
     public double getYaw() {return TWBController.getYaw();}
     public void imuReset() {TWBController.imuYawReset();}
-
+    public void setDriveMotors(boolean leftForward, boolean rightForward,boolean revEncoders) {
+        TWBController.setDriveMotors(leftForward,rightForward,revEncoders);
+    }
 }

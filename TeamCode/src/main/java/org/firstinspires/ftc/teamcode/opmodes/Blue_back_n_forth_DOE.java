@@ -53,6 +53,7 @@ public class Blue_back_n_forth_DOE extends OpMode {
     @Override
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
+        twb.setDriveMotors(false,true,false);
 
         // NOTE: TWO datalogs can be written!
         // Load "terms" log into a spreadsheet, filter, and sort for the lowest score.

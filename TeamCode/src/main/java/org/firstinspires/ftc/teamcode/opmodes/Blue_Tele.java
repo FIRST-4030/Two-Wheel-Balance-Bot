@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -11,7 +12,7 @@ import org.firstinspires.ftc.teamcode.RunningAverageArray;
  * in regular (robot oriented) gamepad mode.
  */
 @TeleOp(name="Blue TWB Tele")
-//@Disabled
+@Disabled
 public class Blue_Tele extends OpMode
 {
     // Declare OpMode members.
@@ -26,6 +27,7 @@ public class Blue_Tele extends OpMode
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
+        twb.setDriveMotors(false,true,false );
         //twb.writeDatalog("BlueTele");
 
         joystickS = new RunningAverageArray(12,false); // initialize size of running average

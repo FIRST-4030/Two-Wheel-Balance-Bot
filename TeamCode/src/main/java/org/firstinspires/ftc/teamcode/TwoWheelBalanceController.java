@@ -4,9 +4,9 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -38,6 +38,10 @@ public class TwoWheelBalanceController {
     private double Kvelo = 0.0001;  // volts/mm/sec
 
     private double TICKSPERMM = 1; // set in initialization
+
+    private int leftTicks;
+    private int rightTicks;
+    private boolean revEncoders = false; // reverse sign of encoders?
 
     // YAW PID
     private final PIDController yawPID;
@@ -97,15 +101,12 @@ public class TwoWheelBalanceController {
         leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
 
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
-
-        resetMotors();
-
         // initialize IMU before odometry, because odometry needs pitch
         imu = hardwareMap.get(IMU.class, "imu");
+        //imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP,
+        //        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)));
         imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)));
+                RevHubOrientationOnRobot.UsbFacingDirection.LEFT)));
 
         odometry = new TWBOdometry(wheelBase, wheelDia, getPitch(),NVelo,NDist); // create odometry object
         TICKSPERMM = ticksPerMM;
@@ -113,7 +114,16 @@ public class TwoWheelBalanceController {
         yawPID = new PIDController(kp, ki, kd);
 
         yawPID.setSetpoint(0.0);    // initial yaw (yawTarget) is zero.
+    }
+    public void setDriveMotors(boolean leftForward, boolean rightForward, boolean reverseEncoders) {
+        if(leftForward) leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        else leftDrive.setDirection(DcMotor.Direction.REVERSE);
 
+        if(rightForward) rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        else rightDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        resetMotors();
+        this.revEncoders = reverseEncoders;
     }
 
     /**
@@ -136,9 +146,9 @@ public class TwoWheelBalanceController {
     public void start() {
         resetMotors();
 
+        imu.resetYaw(); // set the yaw value to zero
         orientation = imu.getRobotYawPitchRollAngles();
         pitch = orientation.getPitch(AngleUnit.DEGREES);
-        imu.resetYaw(); // set the yaw value to zero
 
         // reset the timer
         runtime.reset();
@@ -165,8 +175,14 @@ public class TwoWheelBalanceController {
     public void loop(OpMode theOpmode) {
         setLoopTime(); // this updates the deltaTime value
 
-        double leftTicks = leftDrive.getCurrentPosition();
-        double rightTicks = rightDrive.getCurrentPosition();
+        if (revEncoders) {
+            leftTicks = -leftDrive.getCurrentPosition();
+            rightTicks = -rightDrive.getCurrentPosition();
+        } else {
+            leftTicks = leftDrive.getCurrentPosition();
+            rightTicks = rightDrive.getCurrentPosition();
+        }
+
 
         AngularVelocity angularVelocity;  // part of FIRST navigation classes
 
@@ -277,4 +293,6 @@ public class TwoWheelBalanceController {
         return pitch;
     }
     public double getPitchRate() {return pitchRATE;}
+    public int getLeftTicks() {return leftDrive.getCurrentPosition();}
+    public int getRightTicks() {return rightDrive.getCurrentPosition();}
 }

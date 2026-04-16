@@ -10,14 +10,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 /**
  * Description of ServoTester.
  *
- * @author Dennis O'Brien
- * @date 11/13/2025
+ * @author Dennis O'Brien, 11/13/2025
  */
 @TeleOp(name = "ServoTester", group="Util")
 @Disabled
 public class ServoTester extends OpMode {
 
-    String DEVICE_NAME = "arm_servo"; // can also be used for the claw servo
+    String DEVICE_NAME = "servo"; // on servo port 3
 
     Servo   servo;
     double  position = 0.5;
@@ -37,7 +36,7 @@ public class ServoTester extends OpMode {
         if (gamepad1.dpadDownWasReleased()) {
             position -= increment;
         }
-
+        telemetry.addLine("Plug servo into port 3");
         telemetry.addLine(String.format("Servo starts at %.2f", position));
         telemetry.addLine("DPad Up: Increases servo start position");
         telemetry.addLine("DPad Down: Decreases servo start position");

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -20,7 +21,7 @@ import org.firstinspires.ftc.teamcode.Term;
  * expectation that the lowest mix/max are the most stable terms.
  */
 @TeleOp(name="Blue Bot Terms Design of Experiments")
-//@Disabled
+@Disabled
 public class Blue_Terms_DOE extends OpMode {
     // Declare OpMode members.
     private BlueWheelTWB twb;
@@ -53,6 +54,7 @@ public class Blue_Terms_DOE extends OpMode {
     @Override
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
+        twb.setDriveMotors(false,true,false);
 
         // NOTE: TWO datalogs can be written!
         // Load "terms" log into a spreadsheet, filter, and sort for the lowest score.
@@ -84,7 +86,7 @@ public class Blue_Terms_DOE extends OpMode {
         A lower interval provides a more real-time view of data on the Driver Station but increases
         communication bandwidth usage,
          */
-        telemetry.setMsTransmissionInterval(500);
+        //telemetry.setMsTransmissionInterval(500);
 
         twb.start();
     }

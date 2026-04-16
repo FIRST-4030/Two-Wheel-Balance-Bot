@@ -34,6 +34,7 @@ public class Blue_Set_Arm_Angle_Pitch extends OpMode {
     @Override
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
+        twb.setDriveMotors(false,true,false);
 
         twb.closeClaw(); // close the claw
 

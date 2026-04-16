@@ -15,6 +15,8 @@ public class TWBOdometry {
     private double lastPitch;
 
     // Position and orientation
+    private double newLeftDistance, newRightDistance;
+
     private double x = 0;
     private double y = 0;
     private double s = 0;  // total distance regardless of direction
@@ -47,14 +49,13 @@ public class TWBOdometry {
     /**
      * Updates the position and orientation (yaw) of the robot based on new encoder values.
      *
-     * @param leftDistance  distance traveled by the left wheel (mm).
-     * @param rightDistance distance traveled by the right wheel (mm).
+     * @param leftEncoderDist  distance traveled by the left wheel (mm).
+     * @param rightEncoderDist distance traveled by the right wheel (mm).
      * @param pitch   The pitch of the body connected to the wheels (in degrees), zero is up.
      * @param timeChange   The loop delta time (in seconds).
      */
-    public void update(double leftDistance, double rightDistance, double pitch, double timeChange) {
+    public void update(double leftEncoderDist, double rightEncoderDist, double pitch, double timeChange) {
         
-        double newLeftDistance, newRightDistance;
         double deltaLeft, deltaRight;
         double lastLeftDistance;
         double lastRightDistance;
@@ -72,8 +73,8 @@ public class TWBOdometry {
         lastRightDistance = rightDistAvg.getAverage();
 
         // add the new distances to the running averages
-        leftDistAvg.add(leftDistance);
-        rightDistAvg.add(rightDistance);
+        leftDistAvg.add(leftEncoderDist);
+        rightDistAvg.add(rightEncoderDist);
 
         // get the new running average distance
         newLeftDistance = leftDistAvg.getAverage();
@@ -114,12 +115,6 @@ public class TWBOdometry {
         theta = Angles.normalizeAngle(theta);
     }
 
-    public double getX() {
-        return x;
-    }
-    public double getY() {
-        return y;
-    }
     public double getS() {
         return s;
     }
