@@ -60,6 +60,8 @@ public class BlueWheelTWB {
         //                                  0.016       0.015       -0.58           -0.025
         TWBController.setBalanceTerms(0.001785,0.00125,-0.04845,-0.002125);
 
+        TWBController.setDriveMotors(false, true, false);
+
         // Initialize the arm class
         // Determine servo values for two angle using the ServoTester opmode
         theArm = new ArmServo(hardwareMap, "arm_servo", 0.25, 90,
@@ -263,7 +265,4 @@ public class BlueWheelTWB {
     public double getYawTarget() {return TWBController.getYawTarget();}
     public double getYaw() {return TWBController.getYaw();}
     public void imuReset() {TWBController.imuYawReset();}
-    public void setDriveMotors(boolean leftForward, boolean rightForward,boolean revEncoders) {
-        TWBController.setDriveMotors(leftForward,rightForward,revEncoders);
-    }
 }

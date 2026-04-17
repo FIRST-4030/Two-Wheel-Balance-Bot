@@ -28,7 +28,6 @@ public class Blue_Tele_Field_Centric extends OpMode
     @Override
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
-        twb.setDriveMotors(false,true,false);
 
         twb.writeDatalog("BlueFieldCentric"); // needs to be part of constructor or something
 

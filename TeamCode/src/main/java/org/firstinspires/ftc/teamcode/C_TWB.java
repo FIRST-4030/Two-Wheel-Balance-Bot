@@ -37,14 +37,19 @@ public class C_TWB {
         // TICKSPERMM = (8192)/(96*Math.PI) = 27.16244;
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
         TWBController = new TwoWheelBalanceController(hardwareMap, 246.0, 96.0,
-                27.16244, 0.45, 0.0, 0.05, 1, 1);
+                27.16244, 0.45, 0.0, 0.05, 3, 1);
 
         // These are the state terms for a two wheel balancing robot
         // Tune these using the DOE (Design of Experiments) opmode.
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.030,0.0001,-0.1,-0.001);
+        TWBController.setBalanceTerms(0.0040,0.0017,-0.061,-0.0051);
+        //                                  0.004       0.00017     -0.0601       -0.0051
+
+        TWBController.setArmPitchTarget(-2.5); // measured with C_DriveSimple opmode
+
+        TWBController.setDriveMotors(true,false,true);
 
         leftGearServo = hardwareMap.get(Servo.class, "leftGearServo");
         rightGearServo = hardwareMap.get(Servo.class, "rightGearServo");
@@ -88,7 +93,7 @@ public class C_TWB {
         leftGearServo.setPosition(LEFTDOWN);
         rightGearServo.setPosition(RIGHTDOWN);
         ElapsedTime timer = new ElapsedTime();
-        while (timer.seconds() < 0.5) {
+        while (timer.seconds() < 0.8) {
             om.telemetry.addLine("stopping");
             om.telemetry.update();
         }
@@ -130,7 +135,9 @@ public class C_TWB {
                 TWBController.getVeloTarget(),TWBController.getVelocity()));
         om.telemetry.addLine(String.format("Pitch Target %.1f ,Current %.1f (degrees)",
                 TWBController.getPitchTarget(),TWBController.getPitch()));
-        om.telemetry.addData("Current Voltage   ",TWBController.getCurrentVoltage());
+        om.telemetry.addLine(String.format("Yaw Target %.1f ,Current %.1f (degrees)",
+                TWBController.getYawTarget(),TWBController.getYaw()));
+        //om.telemetry.addData("Current Voltage   ",TWBController.getCurrentVoltage());
     }
 
     public double getKpos() {return TWBController.getKpos();}
@@ -165,7 +172,4 @@ public class C_TWB {
     public int getLeftTicks() {return TWBController.getLeftTicks();}
     public int getRightTicks() {return TWBController.getRightTicks();}
 
-    public void setDriveMotors(boolean leftForward, boolean rightForward,boolean revEncoders) {
-        TWBController.setDriveMotors(leftForward,rightForward,revEncoders);
-    }
 }

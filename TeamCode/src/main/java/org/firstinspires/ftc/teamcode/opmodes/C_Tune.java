@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.BlueWheelTWB;
 import org.firstinspires.ftc.teamcode.C_TWB;
 import org.firstinspires.ftc.teamcode.RunningAverageArray;
@@ -29,7 +30,6 @@ public class C_Tune extends OpMode
     public void init() {
         twb = new C_TWB(hardwareMap); // Create twb object
 
-        twb.setDriveMotors(true,false,false);
 
         twb.writeDatalog("CManualTune");
 
@@ -44,6 +44,7 @@ public class C_Tune extends OpMode
     @Override
     public void init_loop() {
         telemetry.addLine("TWO Wheel Balance Robot Manual Tuner");
+        tuneKterms();
 
         telemetry.update();
     }
@@ -62,9 +63,9 @@ public class C_Tune extends OpMode
     @Override
     public void loop() {
 
-        tuneKterms();
+        //tuneKterms();
 
-        //tuneDriveTerms();
+        tuneDriveTerms();
 
         // Use running average of the joystick to smooth aggressive inputs.
         // The left trigger is a speed booster
@@ -81,6 +82,7 @@ public class C_Tune extends OpMode
 
         if(gamepad1.start) {
             twb.stop(this);
+            requestOpModeStop(); // Stop the opmode
         }
 
         twb.writeTelemetry(this);
@@ -94,23 +96,26 @@ public class C_Tune extends OpMode
      * TWB method to provide buttons for tuning feedback constants.
      */
     public void tuneKterms() {
-        if (gamepad1.dpadUpWasPressed()) twb.setKpos(twb.getKpos()+0.001);
-        else if (gamepad1.dpadDownWasPressed()) twb.setKpos(twb.getKpos()-0.001);
+        if (gamepad1.dpadUpWasPressed()) twb.setKpos(twb.getKpos()+0.0001);
+        else if (gamepad1.dpadDownWasPressed()) twb.setKpos(twb.getKpos()-0.0001);
 
-        else if (gamepad1.dpadLeftWasPressed()) twb.setKvelo(twb.getKvelo()+0.0001);
-        else if (gamepad1.dpadRightWasPressed()) twb.setKvelo(twb.getKvelo()-0.0001);
+        else if (gamepad1.dpadLeftWasPressed()) twb.setKvelo(twb.getKvelo()+0.00001);
+        else if (gamepad1.dpadRightWasPressed()) twb.setKvelo(twb.getKvelo()-0.00001);
 
-        else if (gamepad1.xWasPressed()) twb.setKpitch(twb.getKpitch()+0.01);
-        else if (gamepad1.bWasPressed()) twb.setKpitch(twb.getKpitch()-0.01);
+        else if (gamepad1.xWasPressed()) twb.setKpitch(twb.getKpitch()+0.002);
+        else if (gamepad1.bWasPressed()) twb.setKpitch(twb.getKpitch()-0.002);
 
-        else if (gamepad1.yWasPressed()) twb.setKpitchRate(twb.getKpitchRate()+0.001);
-        else if (gamepad1.aWasPressed()) twb.setKpitchRate(twb.getKpitchRate()-0.001);
+        else if (gamepad1.yWasPressed()) twb.setKpitchRate(twb.getKpitchRate()+0.0002);
+        else if (gamepad1.aWasPressed()) twb.setKpitchRate(twb.getKpitchRate()-0.0002);
 
-
+        telemetry.addLine(" --- ");
         telemetry.addData("K pos   DPAD +UP -DOWN", twb.getKpos());
-        telemetry.addData("K velo  DPAD +LEFT -RIGHT", twb.getKvelo());
+        telemetry.addData("K velo  DPAD +LEFT -RIGHT", "%.6f",twb.getKvelo());
+        telemetry.addLine(" --- ");
         telemetry.addData("K pitch +X -B", twb.getKpitch());
-        telemetry.addData("K pitch rate +Y -A", twb.getKpitchRate());
+        telemetry.addData("K pitch rate +Y -A", "%.6f",twb.getKpitchRate());
+        telemetry.addLine(" --- ");
+
     }
     /**
      * TWB method to provide buttons for tuning drive terms.

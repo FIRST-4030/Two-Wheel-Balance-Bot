@@ -27,7 +27,6 @@ public class Blue_Tele extends OpMode
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
-        twb.setDriveMotors(false,true,false );
         //twb.writeDatalog("BlueTele");
 
         joystickS = new RunningAverageArray(12,false); // initialize size of running average

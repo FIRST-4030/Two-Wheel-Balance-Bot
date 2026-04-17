@@ -36,7 +36,6 @@ public class Blue_back_n_forth extends OpMode {
     @Override
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
-        twb.setDriveMotors(false,true,false);
 
         twb.writeDatalog("BlueLogAutoBnF");
 

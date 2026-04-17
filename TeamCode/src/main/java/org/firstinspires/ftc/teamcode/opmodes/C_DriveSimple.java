@@ -20,7 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  * @author Steve Amorori, 4/15/2026
  */
 @TeleOp(name = "C_SimpleDrive")
-@Disabled
+//@Disabled
 public class C_DriveSimple extends OpMode {
 
     DcMotor leftmotor;

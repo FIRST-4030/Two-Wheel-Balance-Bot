@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.BlueWheelTWB;
+import org.firstinspires.ftc.teamcode.C_TWB;
 import org.firstinspires.ftc.teamcode.Datalogger;
 import org.firstinspires.ftc.teamcode.RunningAverageArray;
 import org.firstinspires.ftc.teamcode.Term;
@@ -20,17 +21,16 @@ import org.firstinspires.ftc.teamcode.Term;
  * A datalog records the min/max of position and pitch for each test, with the
  * expectation that the lowest mix/max are the most stable terms.
  */
-@TeleOp(name="Blue Bot Terms Design of Experiments")
-@Disabled
-public class Blue_Terms_DOE extends OpMode {
+@TeleOp(name="C Bot Terms Design of Experiments")
+//@Disabled
+public class C_Terms_DOE extends OpMode {
     // Declare OpMode members.
-    private BlueWheelTWB twb;
+    private C_TWB twb;
     final private ElapsedTime moveTimer = new ElapsedTime();
 
     // DOE constants.  Modify these for the experiment
-    private final double ARMANGLE = -90.0;
-    private final double testDuration = 4.0; // seconds per experiment
-    private final double JIGGLEDEG = 9.0; // Pitch jiggle for each experiment
+    private final double testDuration = 3.0; // seconds per experiment
+    private final double JIGGLEDEG = 2.0; // Pitch jiggle for each experiment
 
     // Modify the Terms in init()
     private Term Kpos;
@@ -46,46 +46,33 @@ public class Blue_Terms_DOE extends OpMode {
 
     private RunningAverageArray robotPos; // to provide steady position telemetry in init
 
-    private double pitchFuzz = -1.5;
+    private double pitchFuzz = 0.0;
 
     /**
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
-        twb = new BlueWheelTWB(hardwareMap); // Create twb object
+        twb = new C_TWB(hardwareMap); // Create twb object
 
         // NOTE: TWO datalogs can be written!
         // Load "terms" log into a spreadsheet, filter, and sort for the lowest score.
-        datalogEXP = new DatalogEXP("BlueDOEterms");
+        datalogEXP = new DatalogEXP("C_DOEterms");
 
-        twb.writeDatalog("BlueDOEFull"); // This log will be bigger
-
-        twb.closeClaw(); // close the claw
+        twb.writeDatalog("C_DOEFull"); // This log will be bigger
 
         // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
 //        Kpos = new Term(0.017,0.021,3,twb.getKpos());
 //        Kvelo = new Term(0.015,0.019,3,twb.getKvelo());  // 0.020 breaks bot
 //        Kpitch = new Term(-0.61,-0.57,3,twb.getKpitch());
 //        KpitchRate = new Term(-0.028,-0.022,3,twb.getKpitchRate());
-        Kpos = new Term(0.0017493,0.001821,3,twb.getKpos());
-        Kvelo = new Term(0.001225,0.001275,3,twb.getKvelo());
-        Kpitch = new Term(-0.049419,-0.047481,3,twb.getKpitch());
-        KpitchRate = new Term(-0.002083,-0.00200116,3,twb.getKpitchRate());
+        Kpos = new Term(0.00395,0.00405,3,twb.getKpos());
+        Kvelo = new Term(0.00164,0.00170,3,twb.getKvelo());
+        Kpitch = new Term(-0.0615,-0.0605,3,twb.getKpitch());
+        KpitchRate = new Term(-0.00515,-0.00505,3,twb.getKpitchRate());
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
         robotPos = new RunningAverageArray(100,true); // for robot position telemetry
-
-        twb.setArmAngle(ARMANGLE); // gets the latest state of the robot before running
-        /*
-        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge SDK controls
-        how frequently telemetry data is sent from the Robot Controller to the Driver Station
-        250 (milliseconds) is the default value and a good general-purpose interval.
-        100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates.
-        A lower interval provides a more real-time view of data on the Driver Station but increases
-        communication bandwidth usage,
-         */
-        //telemetry.setMsTransmissionInterval(500);
 
         twb.start();
     }
@@ -101,14 +88,15 @@ public class Blue_Terms_DOE extends OpMode {
         twb.setAutoPitchTarget(pitchFuzz);
 
         telemetry.addLine("DOE to determine Kpos, Kvelo, Kpitch & KpitchRate");
-        telemetry.addData("ARM Angle (deg) =", ARMANGLE);
+        telemetry.addLine(" ---");
+
         twb.loop(this);  // call balance control system
 
         robotPos.add(twb.getPos()); // for telemetry only
         telemetry.addData("Robot Position (mm) (Averaged)","  %.1f", robotPos.getAverage());
 
         telemetry.addData("Robot Pitch (deg)"," %.1f", twb.getPitch());
-        telemetry.addData("Pitch  FUZZ (deg)"," %.1f", pitchFuzz);
+        telemetry.addData("DPAD UP+ DOWN- Pitch  FUZZ (deg)"," %.1f", pitchFuzz);
 
         telemetry.update();
     }
@@ -151,7 +139,7 @@ public class Blue_Terms_DOE extends OpMode {
             twb.setAutoPitchTarget(pitchFuzz);
 
             // during the experiment, after the jiggle, record min/max
-            if(moveTimer.seconds() > 0.3) {
+            if(moveTimer.seconds() > 0.2) {
                 double thisPos = twb.getPos();
                 double thisPitch = twb.getPitch();
                 double thisDT = twb.getDeltaTime();
