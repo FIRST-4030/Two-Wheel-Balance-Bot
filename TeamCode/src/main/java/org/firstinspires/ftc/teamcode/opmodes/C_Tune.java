@@ -63,9 +63,9 @@ public class C_Tune extends OpMode
     @Override
     public void loop() {
 
-        //tuneKterms();
+        tuneKterms();
 
-        tuneDriveTerms();
+        //tuneDriveTerms();
 
         // Use running average of the joystick to smooth aggressive inputs.
         // The left trigger is a speed booster

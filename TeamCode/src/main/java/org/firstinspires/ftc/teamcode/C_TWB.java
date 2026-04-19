@@ -20,14 +20,14 @@ public class C_TWB {
 
     private final static double RIGHTDOWN = 0.88; // servo value
     private final static double RIGHTUP = 0.40;  // servo value
-    private final static double LEFTDOWN = 0.82; // servo value
-    private final static double LEFTUP = 0.30;  // servo value
+    private final static double LEFTDOWN = 0.87; // servo value
+    private final static double LEFTUP = 0.42;  // servo value
     private final ElapsedTime clawTimer = new ElapsedTime(); // Timer used with Claw
 
     private DatalogTWB CdatalogTWB; // datalog for full recording
     private boolean writeDatalog = false; // default is no log.  call method to write.
-    public double MMPLoop = 8.0;
-    public double DEGPLoop = 1.0;
+    public double MMPLoop = 6.0;
+    public double DEGPLoop = 2.0;
     /**
      * TWB Constructor.  Call once.
       */
@@ -37,17 +37,17 @@ public class C_TWB {
         // TICKSPERMM = (8192)/(96*Math.PI) = 27.16244;
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
         TWBController = new TwoWheelBalanceController(hardwareMap, 246.0, 96.0,
-                27.16244, 0.45, 0.0, 0.05, 3, 1);
+                27.16244, 0.45, 0.0, 0.05, 5, 1);
 
         // These are the state terms for a two wheel balancing robot
         // Tune these using the DOE (Design of Experiments) opmode.
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.0040,0.0017,-0.061,-0.0051);
+        TWBController.setBalanceTerms(0.0036,0.0018,-0.061,-0.00515);
         //                                  0.004       0.00017     -0.0601       -0.0051
 
-        TWBController.setArmPitchTarget(-2.5); // measured with C_DriveSimple opmode
+        TWBController.setArmPitchTarget(-3.2); // measured with C_DriveSimple opmode
 
         TWBController.setDriveMotors(true,false,true);
 

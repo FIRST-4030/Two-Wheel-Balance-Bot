@@ -66,10 +66,10 @@ public class C_Terms_DOE extends OpMode {
 //        Kvelo = new Term(0.015,0.019,3,twb.getKvelo());  // 0.020 breaks bot
 //        Kpitch = new Term(-0.61,-0.57,3,twb.getKpitch());
 //        KpitchRate = new Term(-0.028,-0.022,3,twb.getKpitchRate());
-        Kpos = new Term(0.00395,0.00405,3,twb.getKpos());
-        Kvelo = new Term(0.00164,0.00170,3,twb.getKvelo());
-        Kpitch = new Term(-0.0615,-0.0605,3,twb.getKpitch());
-        KpitchRate = new Term(-0.00515,-0.00505,3,twb.getKpitchRate());
+        Kpos = new Term(0.00360,0.0040,4,twb.getKpos());
+        Kvelo = new Term(0.00170,0.00200,4,twb.getKvelo());
+        Kpitch = new Term(-0.0615,-0.0605,2,twb.getKpitch());
+        KpitchRate = new Term(-0.00515,-0.00505,2,twb.getKpitchRate());
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
         robotPos = new RunningAverageArray(100,true); // for robot position telemetry
@@ -179,7 +179,7 @@ public class C_Terms_DOE extends OpMode {
             datalogEXP.ampPitch.set(ampPitch);
             datalogEXP.PitchError.set(Kpitch.getSum());
             //datalogEXP.score.set(ampPitch*4.0+ampPos+Math.abs(AvgPos)); // low score wins!
-            datalogEXP.score.set(Kpitch.getSum()*4.0+Kpos.getSum()); // low score wins!
+            datalogEXP.score.set(8.0*Kpitch.getSum() + Kpos.getSum()); // low score wins!
 
             // The logged timestamp is taken when writeLine() is called.
             datalogEXP.writeLine();
@@ -209,9 +209,13 @@ public class C_Terms_DOE extends OpMode {
         twb.loop(this);  // CALL MAIN TWB CONTROL SYSTEM
 
         telemetry.addLine(String.format("EXPERIMENT %d  OF TOTAL %d",count, NEXPERIMENTS));
+        telemetry.addLine(" --- ");
+
         telemetry.addData("Kposition","%.7f",Kpos.getCurrent());
-        telemetry.addData("Kpitch","%.7f", Kpitch.getCurrent());
         telemetry.addData("Kvelo","%.7f", Kvelo.getCurrent());
+        telemetry.addLine(" --- ");
+
+        telemetry.addData("Kpitch","%.7f", Kpitch.getCurrent());
         telemetry.addData("KpitchRate","%.7f", KpitchRate.getCurrent());
 
         telemetry.update();

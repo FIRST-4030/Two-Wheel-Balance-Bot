@@ -13,10 +13,10 @@ import com.qualcomm.robotcore.hardware.Servo;
  * @author Dennis O'Brien, 11/13/2025
  */
 @TeleOp(name = "ServoTester", group="Util")
-@Disabled
+//@Disabled
 public class ServoTester extends OpMode {
 
-    String DEVICE_NAME = "servo"; // on servo port 3
+    String DEVICE_NAME = "servo";
 
     Servo   servo;
     double  position = 0.5;
@@ -36,7 +36,7 @@ public class ServoTester extends OpMode {
         if (gamepad1.dpadDownWasReleased()) {
             position -= increment;
         }
-        telemetry.addLine("Plug servo into port 3");
+        telemetry.addLine("Plug servo into port 4");
         telemetry.addLine(String.format("Servo starts at %.2f", position));
         telemetry.addLine("DPad Up: Increases servo start position");
         telemetry.addLine("DPad Down: Decreases servo start position");
