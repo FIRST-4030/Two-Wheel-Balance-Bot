@@ -30,7 +30,7 @@ public class C_Terms_DOE extends OpMode {
 
     // DOE constants.  Modify these for the experiment
     private final double testDuration = 3.0; // seconds per experiment
-    private final double JIGGLEDEG = 2.0; // Pitch jiggle for each experiment
+    private final double JIGGLEDEG = 3.0; // Pitch jiggle for each experiment
 
     // Modify the Terms in init()
     private Term Kpos;
@@ -62,14 +62,11 @@ public class C_Terms_DOE extends OpMode {
         twb.writeDatalog("C_DOEFull"); // This log will be bigger
 
         // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
-//        Kpos = new Term(0.017,0.021,3,twb.getKpos());
-//        Kvelo = new Term(0.015,0.019,3,twb.getKvelo());  // 0.020 breaks bot
-//        Kpitch = new Term(-0.61,-0.57,3,twb.getKpitch());
-//        KpitchRate = new Term(-0.028,-0.022,3,twb.getKpitchRate());
-        Kpos = new Term(0.00360,0.0040,4,twb.getKpos());
-        Kvelo = new Term(0.00170,0.00200,4,twb.getKvelo());
-        Kpitch = new Term(-0.0615,-0.0605,2,twb.getKpitch());
-        KpitchRate = new Term(-0.00515,-0.00505,2,twb.getKpitchRate());
+//        KpitchRate = smallest absolute value before chatter = -0.007
+        Kpos = new Term(0.0043,0.0045,3,twb.getKpos());
+        Kvelo = new Term(0.00230,0.00250,3,twb.getKvelo());
+        Kpitch = new Term(-0.085,-0.075,3,twb.getKpitch());
+        KpitchRate = new Term(-0.0070,-0.0060,3,twb.getKpitchRate());
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
         robotPos = new RunningAverageArray(100,true); // for robot position telemetry
@@ -95,7 +92,7 @@ public class C_Terms_DOE extends OpMode {
         robotPos.add(twb.getPos()); // for telemetry only
         telemetry.addData("Robot Position (mm) (Averaged)","  %.1f", robotPos.getAverage());
 
-        telemetry.addData("Robot Pitch (deg)"," %.1f", twb.getPitch());
+        telemetry.addData("Robot Pitch TARGET (deg)"," %.1f", twb.getPitchTarget());
         telemetry.addData("DPAD UP+ DOWN- Pitch  FUZZ (deg)"," %.1f", pitchFuzz);
 
         telemetry.update();
@@ -179,7 +176,7 @@ public class C_Terms_DOE extends OpMode {
             datalogEXP.ampPitch.set(ampPitch);
             datalogEXP.PitchError.set(Kpitch.getSum());
             //datalogEXP.score.set(ampPitch*4.0+ampPos+Math.abs(AvgPos)); // low score wins!
-            datalogEXP.score.set(8.0*Kpitch.getSum() + Kpos.getSum()); // low score wins!
+            datalogEXP.score.set(16.0*Kpitch.getSum() + Kpos.getSum()); // low score wins!
 
             // The logged timestamp is taken when writeLine() is called.
             datalogEXP.writeLine();
@@ -220,7 +217,10 @@ public class C_Terms_DOE extends OpMode {
 
         telemetry.update();
 
-        if (count > NEXPERIMENTS) requestOpModeStop(); // Stop the opmode
+        if (count > NEXPERIMENTS) {
+            twb.moveGearDown();
+            if(moveTimer.seconds() > 0.6) requestOpModeStop(); // Stop the opmode
+        }
     }
     /**
      * Datalog class encapsulates all the fields that will go into the datalog.

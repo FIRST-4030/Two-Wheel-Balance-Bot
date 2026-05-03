@@ -29,24 +29,9 @@ public class DatalogTWB {
         datalog.pitchRATE.set(pitchRATE);
         datalog.yaw.set(yaw);
         datalog.yawTarget.set(yawTarget);
-//        datalog.yawTheta.set(theta);
-//        datalog.x.set(odometry.getX());
-//        datalog.y.set(odometry.getY());
-//        datalog.leftTicks.set(leftTicks / TICKSPERMM);
-//        datalog.rightTicks.set(rightTicks); // TICKSPERMM
         datalog.linVelo.set(velocity);
-//        datalog.avgLinVelo.set(linearVelocity); // this is a running average
         datalog.positionVolts.set(posVolts); // look for saturation when tuning
         datalog.pitchVolts.set(pitchVolts);  // look for saturation when tuning
-//        datalog.totalVolts.set(totalPowerVolts);
-//        datalog.yawPwr.set(yawPower * currentVoltage);
-//        datalog.battery.set(battery.getVoltage());
-//        datalog.armAngle.set(theArm.getAngle());
-//        datalog.Kpos.set(Kpos);
-//        datalog.Kvelo.set(Kvelo);
-//        datalog.Kpitch.set(Kpitch);
-//        datalog.KpitchRate.set(KpitchRate);
-//        datalog.PosAmplitude.set(PosAmplitude);
         datalog.dt.set(dt);
     }
     public void writeLineTWB() {
@@ -70,22 +55,9 @@ public class DatalogTWB {
         public Datalogger.GenericField veloTarget = new Datalogger.GenericField("VeloTarget");
         public Datalogger.GenericField yaw = new Datalogger.GenericField("Yaw");
         public Datalogger.GenericField yawTarget = new Datalogger.GenericField("yawTarget");
-        public Datalogger.GenericField yawTheta = new Datalogger.GenericField("Theta");
-        public Datalogger.GenericField x = new Datalogger.GenericField("x");
-        public Datalogger.GenericField y = new Datalogger.GenericField("y");
-        public Datalogger.GenericField leftTicks = new Datalogger.GenericField("leftMtrMM");
-        public Datalogger.GenericField rightTicks = new Datalogger.GenericField("rightMtrMM");
-        public Datalogger.GenericField rightODO = new Datalogger.GenericField("rightODOMM");
         public Datalogger.GenericField linVelo = new Datalogger.GenericField("linearVelo");
-        public Datalogger.GenericField avgLinVelo = new Datalogger.GenericField("AvgLinearVelo");
         public Datalogger.GenericField positionVolts = new Datalogger.GenericField("positionVolts");
         public Datalogger.GenericField pitchVolts = new Datalogger.GenericField("pitchVolts");
-        public Datalogger.GenericField totalVolts = new Datalogger.GenericField("totalVolts");
-        public Datalogger.GenericField yawPwr = new Datalogger.GenericField("yawPower");
-        public Datalogger.GenericField battery = new Datalogger.GenericField("Battery");
-        public Datalogger.GenericField armAngle = new Datalogger.GenericField("armAngle");
-
-        public Datalogger.GenericField PosAmplitude = new Datalogger.GenericField("PosAmplitude");
         public Datalogger.GenericField dt = new Datalogger.GenericField("DeltaTime");
 
         public DatalogTWBinside(String name) {
@@ -110,21 +82,9 @@ public class DatalogTWB {
                             veloTarget,
                             yaw,
                             yawTarget,
-                            //yawTheta,
-                            //x,
-                            //y,
-                            //leftTicks,
-                            //rightTicks,
-                            //rightODO,
                             linVelo,
-                            //avgLinVelo,
                             positionVolts,
                             pitchVolts,
-                            //totalVolts,
-                            //yawPwr,
-                            //battery,
-                            //armAngle,
-                            //PosAmplitude,
                             dt
                     )
                     .build();

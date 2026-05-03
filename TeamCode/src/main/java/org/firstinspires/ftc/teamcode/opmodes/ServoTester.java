@@ -20,7 +20,7 @@ public class ServoTester extends OpMode {
 
     Servo   servo;
     double  position = 0.5;
-    double increment = 0.02;
+    double increment = 0.01;
 
     @Override
     public void init() {

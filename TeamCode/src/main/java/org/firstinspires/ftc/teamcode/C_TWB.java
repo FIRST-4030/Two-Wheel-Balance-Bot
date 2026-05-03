@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -15,14 +14,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class C_TWB {
     private final TwoWheelBalanceController TWBController;
 
+    private boolean GearDown = true;
     private final Servo leftGearServo;
     private final Servo rightGearServo;
 
-    private final static double RIGHTDOWN = 0.88; // servo value
-    private final static double RIGHTUP = 0.40;  // servo value
-    private final static double LEFTDOWN = 0.87; // servo value
-    private final static double LEFTUP = 0.42;  // servo value
-    private final ElapsedTime clawTimer = new ElapsedTime(); // Timer used with Claw
+    private final static double RIGHTDOWN = 0.02; // servo value
+    private final static double RIGHTUP = 0.57;  // servo value
+    private final static double LEFTDOWN = 0.92; // servo value.
+    private final static double LEFTUP = 0.40;  // servo value
+    private final ElapsedTime gearTimer = new ElapsedTime(); // Timer used with Claw
 
     private DatalogTWB CdatalogTWB; // datalog for full recording
     private boolean writeDatalog = false; // default is no log.  call method to write.
@@ -37,17 +37,18 @@ public class C_TWB {
         // TICKSPERMM = (8192)/(96*Math.PI) = 27.16244;
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
         TWBController = new TwoWheelBalanceController(hardwareMap, 246.0, 96.0,
-                27.16244, 0.45, 0.0, 0.05, 5, 1);
+                27.16244, 0.45, 0.0, 0.05, 5, 1,
+                TwoWheelBalanceController.Robot.C);
 
         // These are the state terms for a two wheel balancing robot
         // Tune these using the DOE (Design of Experiments) opmode.
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.0036,0.0018,-0.061,-0.00515);
-        //                                  0.004       0.00017     -0.0601       -0.0051
+        TWBController.setBalanceTerms(0.0044,0.0024,-0.080,-0.0069);
+        //                                  0.0044       0.0026     -0.080       -0.007 <= MAX pr
 
-        TWBController.setArmPitchTarget(-3.2); // measured with C_DriveSimple opmode
+        TWBController.setArmPitchTarget(0.0); // measure with C_DriveSimple opmode or DOE
 
         TWBController.setDriveMotors(true,false,true);
 
@@ -56,17 +57,15 @@ public class C_TWB {
     }
 
     public void init() {
-        // put the gear down
-        leftGearServo.setPosition(LEFTDOWN);
-        rightGearServo.setPosition(RIGHTDOWN);
+        moveGearDown();
+
     }
     /**
      * Start is called once after play is pushed and calls the TWB controller start
      */
     public void start() {
         TWBController.start();
-        leftGearServo.setPosition(LEFTUP);
-        rightGearServo.setPosition(RIGHTUP);
+        moveGearUp();
     }
     /**
      * TWB Main Loop method.  Call repeatedly while running. Contains balance control logic.
@@ -75,7 +74,15 @@ public class C_TWB {
     @SuppressLint("DefaultLocale")
     public void loop(OpMode theOpmode) {
 
-        TWBController.loop(theOpmode);
+        if (!GearDown) {
+            TWBController.loop(theOpmode); // balancing
+        } else { // gear is down or going down
+            if (gearTimer.seconds() < 0.4) {
+                TWBController.loop(theOpmode); // keep balancing while going down
+            } else {
+                TWBController.setMotorsZero();
+            }
+        }
 
         if (writeDatalog) {
             CdatalogTWB.logPosPitch(TWBController.getPosition(), TWBController.getPosTarget(),
@@ -88,16 +95,20 @@ public class C_TWB {
         }
     }
 
-    public void stop(OpMode om) {
+    public void moveGearUp() {
+        leftGearServo.setPosition(LEFTUP);
+        rightGearServo.setPosition(RIGHTUP);
+        GearDown = false;
+    }
+    public void moveGearDown() {
         // put the gear down and wait for a bit
         leftGearServo.setPosition(LEFTDOWN);
         rightGearServo.setPosition(RIGHTDOWN);
-        ElapsedTime timer = new ElapsedTime();
-        while (timer.seconds() < 0.8) {
-            om.telemetry.addLine("stopping");
-            om.telemetry.update();
-        }
+        GearDown = true;
+        gearTimer.reset(); // start the timer
     }
+    public boolean isGearDown() {return GearDown;}
+
     /**
      * TWB method to provide user control of turning the robot.
      * @param deltaAngle a value from -1 to 1 in radians
@@ -149,27 +160,16 @@ public class C_TWB {
     public void setKpitchRate(double k) {TWBController.setKpitchRate(k);}
     public void setKvelo(double k) {TWBController.setKvelo(k);}
     public void setAutoPitchTarget(double target) {TWBController.setAutoPitchTarget(target);}
-    public void setPosTarget(double pos) {TWBController.setPosTarget(pos);}
-    public void setVeloTarget(double velo) {TWBController.setVeloTarget(velo);}
     public double getPos() {return TWBController.getPosition();}
-    public double getPosTarget() {return TWBController.getPosTarget();}
     public double getVelocity() {return TWBController.getVelocity();}
     public double getPitch() {return TWBController.getPitch();}
     public double getPitchTarget() {return TWBController.getPitchTarget();}
-    public double getPitchRate() {return TWBController.getPitchRate();}
-    public double getPosVolts() {return TWBController.getPositionVolts();}
-    public double getPitchVolts() {return TWBController.getPitchVolts();}
     public double getDeltaTime() {return TWBController.getDeltaTime();}
     public void writeDatalog(String LogName) {
         this.writeDatalog=true;
         CdatalogTWB = new DatalogTWB();
         CdatalogTWB.init(LogName);
     }
-    public void setYawTarget(double yaw) {TWBController.setYawTarget(yaw);}
-    public double getYawTarget() {return TWBController.getYawTarget();}
     public double getYaw() {return TWBController.getYaw();}
-    public void imuReset() {TWBController.imuYawReset();}
-    public int getLeftTicks() {return TWBController.getLeftTicks();}
-    public int getRightTicks() {return TWBController.getRightTicks();}
 
 }

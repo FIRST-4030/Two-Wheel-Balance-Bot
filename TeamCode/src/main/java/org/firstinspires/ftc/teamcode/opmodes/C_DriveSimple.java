@@ -2,20 +2,20 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.hardware.rev.Rev9AxisImuOrientationOnRobot;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 /**
- * simple drive
+ * Simple drive opmode to test the C TWB robot.  This NOT use the C_TWB class. Does NOT balance.
  *
  * @author Steve Amorori, 4/15/2026
  */
@@ -28,9 +28,9 @@ public class C_DriveSimple extends OpMode {
 
     double power = 0.0;
     double increment = 0.02;
-    boolean forward = true;
 
     IMU imu;
+    IMU imuRev;
     YawPitchRollAngles orientation;   // part of FIRST navigation classes
 
     @Override
@@ -50,14 +50,30 @@ public class C_DriveSimple extends OpMode {
         imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.LEFT)));
         imu.resetYaw(); // set the yaw value to zero
+
+        imuRev = hardwareMap.get(IMU.class, "imuREV");
+        imuRev.initialize(new IMU.Parameters(new Rev9AxisImuOrientationOnRobot(
+                Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP,
+                Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.FORWARD)));
+        imuRev.resetYaw();
     }
 
     @SuppressLint("DefaultLocale")
     public void init_loop() {
 
         orientation = imu.getRobotYawPitchRollAngles();
+        AngularVelocity angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
         telemetry.addData("Pitch ", "%.1f",orientation.getPitch(AngleUnit.DEGREES));
+        telemetry.addData("Pitch Rate ", "%.1f",angularVelocity.xRotationRate);
         telemetry.addData("Yaw ", "%.1f",orientation.getYaw(AngleUnit.DEGREES));
+
+        telemetry.addLine(" ---");
+
+        YawPitchRollAngles orientationRev = imuRev.getRobotYawPitchRollAngles();
+        AngularVelocity angularVelocityRev = imuRev.getRobotAngularVelocity(AngleUnit.DEGREES);
+        telemetry.addData("Pitch REV", "%.1f",orientationRev.getPitch(AngleUnit.DEGREES));
+        telemetry.addData("Pitch Rate REV", "%.1f",angularVelocityRev.xRotationRate);
+        telemetry.addData("Yaw REV", "%.1f",orientationRev.getYaw(AngleUnit.DEGREES));
 
         telemetry.update();
     }

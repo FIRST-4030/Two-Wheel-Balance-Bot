@@ -45,11 +45,12 @@ public class BlueWheelTWB {
         // TICKSPERMM = (1120)/(203*Math.PI) = 1.75619; // REV SPUR 40:1, 8in wheels
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
         TWBController = new TwoWheelBalanceController(hardwareMap, 300.0, 203.0,
-                1.75619, 0.45, 0.0, 0.05, 7, 3);
+                1.75619, 0.45, 0.0, 0.05, 7, 3,
+                TwoWheelBalanceController.Robot.Blue);
 
         VoltageSensor battery = hardwareMap.voltageSensor.get("Control Hub");
         // Get the current voltage, so that balance control is more consistent
-        TWBController.setCurrentVoltage(battery.getVoltage());
+        //TWBController.setCurrentVoltage(battery.getVoltage());
 
         // These are the state terms for a two wheel balancing robot
         // Tune these using the DOE (Design of Experiments) opmode.
@@ -231,7 +232,7 @@ public class BlueWheelTWB {
                 TWBController.getPitchTarget(),TWBController.getPitch()));
         om.telemetry.addLine(String.format("Arm Angle Target %.1f ,Current %.1f (degrees)",
                 theArm.getTargetAngle(),theArm.getAngle()));
-        om.telemetry.addData("Current Voltage   ",TWBController.getCurrentVoltage());
+        //om.telemetry.addData("Current Voltage   ",TWBController.getCurrentVoltage());
     }
 
     public void closeClaw() {clawServo.setPosition(CLAWCLOSE);}
@@ -248,13 +249,9 @@ public class BlueWheelTWB {
     public void setPosTarget(double pos) {TWBController.setPosTarget(pos);}
     public void setVeloTarget(double velo) {TWBController.setVeloTarget(velo);}
     public double getPos() {return TWBController.getPosition();}
-    public double getPosTarget() {return TWBController.getPosTarget();}
     public double getVelocity() {return TWBController.getVelocity();}
     public double getPitch() {return TWBController.getPitch();}
     public double getPitchTarget() {return TWBController.getPitchTarget();}
-    public double getPitchRate() {return TWBController.getPitchRate();}
-    public double getPosVolts() {return TWBController.getPositionVolts();}
-    public double getPitchVolts() {return TWBController.getPitchVolts();}
     public double getDeltaTime() {return TWBController.getDeltaTime();}
     public void writeDatalog(String LogName) {
         this.writeDatalog=true;

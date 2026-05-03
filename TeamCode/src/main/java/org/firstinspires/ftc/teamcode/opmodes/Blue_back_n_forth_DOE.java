@@ -117,7 +117,7 @@ public class Blue_back_n_forth_DOE extends OpMode {
                     newTargets = myTWBmoves.lineMove(moveTimer.seconds(), currentPos);
                     twb.setPosTarget(newTargets[0]);
                     twb.setAutoPitchTarget(newTargets[1]);
-                    twb.setVeloTarget(newTargets[2]);
+                    //twb.setVeloTarget(newTargets[2]);
                     if (moveTimer.seconds() <= DIST_TIME/2.0) {
                         PITCH1.updateSum(twb.getPos(), newTargets[0], 0.020);
                         PITCH2.updateSum(twb.getVelocity(),newTargets[2],0.020);
@@ -135,7 +135,7 @@ public class Blue_back_n_forth_DOE extends OpMode {
                     newTargets = myTWBmoves.lineMove(moveTimer.seconds(), currentPos);
                     twb.setPosTarget(newTargets[0]);
                     twb.setAutoPitchTarget(newTargets[1]);
-                    twb.setVeloTarget(newTargets[2]);
+                    //twb.setVeloTarget(newTargets[2]);
                     if (moveTimer.seconds() <= DIST_TIME/2.0) {
                         PITCH1.updateSum(twb.getPos(), newTargets[0], 0.020);
                         PITCH2.updateSum(twb.getVelocity(),newTargets[2],0.020);

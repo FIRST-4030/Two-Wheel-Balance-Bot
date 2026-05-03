@@ -1,11 +1,8 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.BlueWheelTWB;
 import org.firstinspires.ftc.teamcode.C_TWB;
 import org.firstinspires.ftc.teamcode.RunningAverageArray;
 
@@ -80,18 +77,15 @@ public class C_Tune extends OpMode
 
         twb.loop(this);  // call the MAIN CONTROL SYSTEM
 
-        if(gamepad1.start) {
-            twb.stop(this);
-            requestOpModeStop(); // Stop the opmode
+        if(gamepad1.backWasPressed()) { // toggle gear state
+            if (twb.isGearDown()) twb.moveGearUp();
+            else  twb.moveGearDown();
         }
 
         twb.writeTelemetry(this);
         telemetry.update();
     }
-    @Override
-    public void stop() {
-        twb.stop(this);
-    }
+
     /**
      * TWB method to provide buttons for tuning feedback constants.
      */
