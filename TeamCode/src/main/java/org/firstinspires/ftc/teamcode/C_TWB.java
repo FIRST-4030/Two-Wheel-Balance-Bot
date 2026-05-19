@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import android.annotation.SuppressLint;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -26,8 +28,13 @@ public class C_TWB {
 
     private DatalogTWB CdatalogTWB; // datalog for full recording
     private boolean writeDatalog = false; // default is no log.  call method to write.
-    public double MMPLoop = 6.0;
+    public double MMPLoop = 8.0;
     public double DEGPLoop = 2.0;
+
+    private DcMotor flywheel;
+    private final ElapsedTime shotTimer = new ElapsedTime(); // Timer used for shooting
+    private boolean shooting = false;
+    private boolean collecting = false;
     /**
      * TWB Constructor.  Call once.
       */
@@ -45,21 +52,26 @@ public class C_TWB {
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.0044,0.0024,-0.080,-0.0069);
+        TWBController.setBalanceTerms(0.0044,0.0024,-0.085,-0.0066);
         //                                  0.0044       0.0026     -0.080       -0.007 <= MAX pr
 
-        TWBController.setArmPitchTarget(0.0); // measure with C_DriveSimple opmode or DOE
+        TWBController.setArmPitchTarget(-1.5); // measure with C_DriveSimple opmode or DOE
 
         TWBController.setDriveMotors(true,false,true);
 
         leftGearServo = hardwareMap.get(Servo.class, "leftGearServo");
         rightGearServo = hardwareMap.get(Servo.class, "rightGearServo");
+
+        flywheel = hardwareMap.get(DcMotor.class, "fly");
+        flywheel.setDirection(DcMotor.Direction.FORWARD);
+        flywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public void init() {
         moveGearDown();
-
     }
+
     /**
      * Start is called once after play is pushed and calls the TWB controller start
      */
@@ -83,6 +95,8 @@ public class C_TWB {
                 TWBController.setMotorsZero();
             }
         }
+
+        shoot_loop(); // check if we are shooting
 
         if (writeDatalog) {
             CdatalogTWB.logPosPitch(TWBController.getPosition(), TWBController.getPosTarget(),
@@ -108,6 +122,34 @@ public class C_TWB {
         gearTimer.reset(); // start the timer
     }
     public boolean isGearDown() {return GearDown;}
+
+    public void setFlywheel(double power) {
+        flywheel.setPower(power);
+    }
+
+    public void shootFlywheel() {
+        shooting = true;
+        shotTimer.reset();
+    }
+
+    public void collectFlywheel() {
+        collecting = true;
+        flywheel.setPower(0.6);
+    }
+
+    public void flywheelOff() {
+        collecting = false;
+        shooting = false;
+    }
+    private void shoot_loop() {
+
+        if (shooting && shotTimer.seconds() < 1.0) {
+            flywheel.setPower(-0.6);
+        } else {
+            shooting = false;
+        }
+        if (!shooting && !collecting) flywheel.setPower(0.0);
+    }
 
     /**
      * TWB method to provide user control of turning the robot.
@@ -171,5 +213,6 @@ public class C_TWB {
         CdatalogTWB.init(LogName);
     }
     public double getYaw() {return TWBController.getYaw();}
+    public void setPosTarget(double pos) {TWBController.setPosTarget(pos);}
 
 }

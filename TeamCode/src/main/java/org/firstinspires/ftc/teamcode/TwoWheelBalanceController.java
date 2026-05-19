@@ -208,7 +208,7 @@ public class TwoWheelBalanceController {
 
         // get position and linear velocity values from wheel encoders (odometry)
         odometry.update(leftTicks / TICKSPERMM,
-                rightTicks / TICKSPERMM, pitch, deltaTime);
+                rightTicks / TICKSPERMM, pitch, deltaTime); // was deltaTime
         sOdom = odometry.getS();  // position
         linearVelocity = odometry.getAvgLinearVelocity();
 
@@ -245,8 +245,7 @@ public class TwoWheelBalanceController {
         rightDrive.setPower(totalPowerVolts  + yawPower);
 
         // kill the robot if it pitches over too far or runs fast when not asked to
-        //if (Math.abs(pitch) > 90  || (Math.abs(linearVelocity) > 1400 && Math.abs(veloTarget) < 50)) {
-        if (Math.abs(pitch) > 90  || (Math.abs(linearVelocity) > 1400)) {
+        if ((Math.abs(pitch) > 60.0)  || (Math.abs(linearVelocity) > 1400)) {
             theOpmode.requestOpModeStop(); // Stop the opmode
         }
     }

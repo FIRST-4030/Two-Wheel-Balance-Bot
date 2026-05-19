@@ -44,6 +44,7 @@ public class C_Tune extends OpMode
         tuneKterms();
 
         telemetry.update();
+        twb.setFlywheel(0.0);
     }
 
     /**
@@ -60,7 +61,11 @@ public class C_Tune extends OpMode
     @Override
     public void loop() {
 
-        tuneKterms();
+        if (gamepad1.rightBumperWasPressed()) twb.collectFlywheel();
+        if (gamepad1.y) twb.shootFlywheel();
+        if (gamepad1.leftBumperWasReleased()) twb.flywheelOff();
+
+        //tuneKterms();
 
         //tuneDriveTerms();
 

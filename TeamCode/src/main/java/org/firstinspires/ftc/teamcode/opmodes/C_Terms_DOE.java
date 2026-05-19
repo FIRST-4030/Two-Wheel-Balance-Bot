@@ -65,8 +65,8 @@ public class C_Terms_DOE extends OpMode {
 //        KpitchRate = smallest absolute value before chatter = -0.007
         Kpos = new Term(0.0043,0.0045,3,twb.getKpos());
         Kvelo = new Term(0.00230,0.00250,3,twb.getKvelo());
-        Kpitch = new Term(-0.085,-0.075,3,twb.getKpitch());
-        KpitchRate = new Term(-0.0070,-0.0060,3,twb.getKpitchRate());
+        Kpitch = new Term(-0.090,-0.080,3,twb.getKpitch());
+        KpitchRate = new Term(-0.0066,-0.0064,3,twb.getKpitchRate());
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
         robotPos = new RunningAverageArray(100,true); // for robot position telemetry

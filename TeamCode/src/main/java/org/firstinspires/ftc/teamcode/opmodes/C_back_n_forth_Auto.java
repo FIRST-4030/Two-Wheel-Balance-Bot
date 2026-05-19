@@ -2,50 +2,47 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.BlueWheelTWB;
+import org.firstinspires.ftc.teamcode.C_TWB;
 import org.firstinspires.ftc.teamcode.TWBMove;
 
 /**
- * This Iterative Autonomous OpMode is for a Two Wheel Balancing Robot with Arm.
- * Moves forward, moves back.
+ * This Iterative Autonomous OpMode is for a Two Wheel Balancing Robot.
+ * Moves forward, moves back. Does other things.
  * Used for developing motion profiles.
  */
-@Autonomous(name="Blue Back and Forth")
-@Disabled
-public class Blue_back_n_forth extends OpMode {
-    private BlueWheelTWB twb;
+@Autonomous(name="C Back and Forth Auto")
+public class C_back_n_forth_Auto extends OpMode {
+    private C_TWB twb;
     private double DIST = 1000; // mm
     private double TIME = 3.0; // sec
     private TWBMove myTWBmoves;
     final private ElapsedTime moveTimer = new ElapsedTime();
     private double currentPos;
 
-    private final double SETTLE_TIME = 3.0; // sec
-
     enum State {
         START,
         MOVE1,
+        SHOOT,
         MOVE2,
-        DONE
+        GEARDOWN
     }
     State state = State.START;
 
     @Override
     public void init() {
-        twb = new BlueWheelTWB(hardwareMap); // Create twb object
+        twb = new C_TWB(hardwareMap); // Create twb object
 
-        twb.writeDatalog("BlueLogAutoBnF");
+        twb.writeDatalog("CLogAutoBnF");
 
-        twb.closeClaw();
+        twb.moveGearDown();
     }
 
     @Override
     public void init_loop() {
-        telemetry.addLine("BLUE TWB Back-n-Forth Auto INIT ");
+        telemetry.addLine("TWB Back-n-Forth Auto INIT ");
 
         if (gamepad1.dpadUpWasPressed()) DIST += 100.0;
         else if (gamepad1.dpadDownWasPressed()) DIST -= 100.0;
@@ -57,9 +54,6 @@ public class Blue_back_n_forth extends OpMode {
         telemetry.addLine("DPAD LEFT - RIGHT Adjusts the time");
         telemetry.addData("Travel Time (seconds) =", TIME);
 
-        twb.auto_right_loop(); // gets the robot into a position to self right
-        twb.closeClaw();
-
         telemetry.update();
     }
 
@@ -70,12 +64,14 @@ public class Blue_back_n_forth extends OpMode {
         resetRuntime();
         moveTimer.reset();
         twb.start();
-        twb.setArmAngle(-90.0); // gets the latest state of the robot before running
+        twb.moveGearUp();
     }
 
     @Override
     public void loop() {
         double[] newTargets;
+
+        double SETTLE_TIME = 2.0; // seconds
 
         switch (state) {
             case START: // stabilize time
@@ -86,37 +82,44 @@ public class Blue_back_n_forth extends OpMode {
                 }
                 break;
             case MOVE1:
-                if (getRuntime() <= (SETTLE_TIME + TIME) ) {
+                if (moveTimer.seconds() <= TIME ) {
                     newTargets = myTWBmoves.lineMove(moveTimer.seconds(),currentPos);
                     twb.setPosTarget(newTargets[0]);
-                    //twb.setAutoPitchTarget(newTargets[1]);
-                    //twb.setVeloTarget(newTargets[2]);
+                } else if (moveTimer.seconds() <= TIME+SETTLE_TIME ) {
+                    // do nothing, let settle
                 } else {
-                    state = State.MOVE2;
+                    state = State.SHOOT;
                     moveTimer.reset();
                     currentPos = DIST; // for the next state
                 }
                 break;
+            case SHOOT:
+                if (moveTimer.seconds() <= 0.05)
+                    twb.shootFlywheel();
+                else if (moveTimer.seconds() > 1.0) {
+                    twb.flywheelOff();
+                    state = State.MOVE2;
+                    moveTimer.reset();
+                }
+
+                break;
             case MOVE2:
-                 if (getRuntime() <= (SETTLE_TIME + TIME + SETTLE_TIME)) {
-                     // Sit for a bit to let robot stabilize after opening claw
-                     moveTimer.reset();
-
-                 } else if (getRuntime() <= (2*SETTLE_TIME + 2* TIME)) {
-                     twb.openClaw();
-
+                 if (moveTimer.seconds() <= TIME) {
                      myTWBmoves.reverseDir = true;
                      newTargets = myTWBmoves.lineMove(moveTimer.seconds(), currentPos);
                      twb.setPosTarget(newTargets[0]);
-                     //twb.setAutoPitchTarget(newTargets[1]);
-                     //twb.setVeloTarget(newTargets[2]);
+                 } else if (moveTimer.seconds() <= TIME+SETTLE_TIME ) {
+                     // do nothing, let settle
                  } else {
-                     state = State.DONE;
+                     state = State.GEARDOWN;
                      moveTimer.reset();
                  }
                 break;
-            case DONE:
-                if (getRuntime() > (3*SETTLE_TIME + 2* TIME + 1) ) requestOpModeStop();
+            case GEARDOWN:
+                if (moveTimer.seconds() <= 0.05)
+                    twb.moveGearDown();
+                else if (moveTimer.seconds() > 0.4)
+                    requestOpModeStop();
                 break;
         }
 

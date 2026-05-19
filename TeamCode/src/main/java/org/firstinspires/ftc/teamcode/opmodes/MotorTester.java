@@ -61,9 +61,9 @@ public class MotorTester extends OpMode {
         telemetry.addData("Ticks", motor.getCurrentPosition());
         telemetry.addLine("SPIN MOTOR BY HAND");
 
-        orientation = imu.getRobotYawPitchRollAngles();
-        telemetry.addData("Pitch ", "%.1f",orientation.getPitch(AngleUnit.DEGREES));
-        telemetry.addData("Yaw ", "%.1f",orientation.getYaw(AngleUnit.DEGREES));
+        //orientation = imu.getRobotYawPitchRollAngles();
+        //telemetry.addData("Pitch ", "%.1f",orientation.getPitch(AngleUnit.DEGREES));
+        //telemetry.addData("Yaw ", "%.1f",orientation.getYaw(AngleUnit.DEGREES));
 
         telemetry.update();
     }
