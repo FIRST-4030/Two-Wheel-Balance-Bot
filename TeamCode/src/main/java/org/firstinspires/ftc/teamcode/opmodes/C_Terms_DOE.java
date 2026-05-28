@@ -15,8 +15,8 @@ import org.firstinspires.ftc.teamcode.RunningAverageArray;
 import org.firstinspires.ftc.teamcode.Term;
 
 /**
- * This Iterative Design of Experiments OpMode is for a Two Wheel Balancing Robot with Arm.
- * It initializes to balancing, then runs through a series of Kposition and Kpitch terms
+ * This Iterative Design of Experiments OpMode is for a Two Wheel Balancing Robot.
+ * It runs through a series of Kposition and Kpitch terms
  * with a perturbation (jiggle) to make the robot rock.
  * A datalog records the min/max of position and pitch for each test, with the
  * expectation that the lowest mix/max are the most stable terms.
@@ -29,7 +29,7 @@ public class C_Terms_DOE extends OpMode {
     final private ElapsedTime moveTimer = new ElapsedTime();
 
     // DOE constants.  Modify these for the experiment
-    private final double testDuration = 3.0; // seconds per experiment
+    private final double testDuration = 5.0; // seconds per experiment
     private final double JIGGLEDEG = 3.0; // Pitch jiggle for each experiment
 
     // Modify the Terms in init()
@@ -43,10 +43,6 @@ public class C_Terms_DOE extends OpMode {
     private int NEXPERIMENTS; // total experiments, set in init
 
     private DatalogEXP datalogEXP;  // data logger for experiments
-
-    private RunningAverageArray robotPos; // to provide steady position telemetry in init
-
-    private double pitchFuzz = 0.0;
 
     /**
      * Code to run ONCE when the driver hits INIT
@@ -63,15 +59,13 @@ public class C_Terms_DOE extends OpMode {
 
         // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
 //        KpitchRate = smallest absolute value before chatter = -0.007
-        Kpos = new Term(0.0043,0.0045,3,twb.getKpos());
-        Kvelo = new Term(0.00230,0.00250,3,twb.getKvelo());
-        Kpitch = new Term(-0.090,-0.080,3,twb.getKpitch());
-        KpitchRate = new Term(-0.0066,-0.0064,3,twb.getKpitchRate());
+        Kpos = new Term(-0.010,-0.0080,5,twb.getKpos());
+        Kvelo = new Term(-0.0022,-0.0022,1,twb.getKvelo());
+        Kpitch = new Term(-0.240,-0.220,4,twb.getKpitch());
+        KpitchRate = new Term(-0.0044,-0.0043,2,twb.getKpitchRate());
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
-        robotPos = new RunningAverageArray(100,true); // for robot position telemetry
-
-        twb.start();
+        twb.init();
     }
 
     /**
@@ -80,20 +74,10 @@ public class C_Terms_DOE extends OpMode {
      */
     @Override
     public void init_loop() {
-        if (gamepad1.dpadUpWasPressed()) pitchFuzz += 0.1;
-        else if (gamepad1.dpadDownWasPressed()) pitchFuzz -= 0.1;
-        twb.setAutoPitchTarget(pitchFuzz);
-
         telemetry.addLine("DOE to determine Kpos, Kvelo, Kpitch & KpitchRate");
         telemetry.addLine(" ---");
 
-        twb.loop(this);  // call balance control system
-
-        robotPos.add(twb.getPos()); // for telemetry only
-        telemetry.addData("Robot Position (mm) (Averaged)","  %.1f", robotPos.getAverage());
-
-        telemetry.addData("Robot Pitch TARGET (deg)"," %.1f", twb.getPitchTarget());
-        telemetry.addData("DPAD UP+ DOWN- Pitch  FUZZ (deg)"," %.1f", pitchFuzz);
+        twb.init_loop();
 
         telemetry.update();
     }
@@ -103,11 +87,9 @@ public class C_Terms_DOE extends OpMode {
      */
     @Override
     public void start() {
-        //twb.start();
+        twb.start();
         resetRuntime();
         moveTimer.reset();
-        //Kpos.setTargetValue(0.0); // target position of the robot is zero
-        //Kpitch.setTargetValue(twb.getPitchTarget());
     }
 
     /**
@@ -124,7 +106,7 @@ public class C_Terms_DOE extends OpMode {
             twb.setKvelo(Kvelo.getOriginal());
             twb.setKpitchRate(KpitchRate.getOriginal());
 
-            twb.setAutoPitchTarget(JIGGLEDEG+pitchFuzz); // add JIGGLEDEG degrees initially to jiggle
+            twb.setAutoPitchTarget(JIGGLEDEG); // add JIGGLEDEG degrees initially to jiggle
 
         } else if(moveTimer.seconds() <= testDuration) {
             // set the new DOE K terms
@@ -133,7 +115,7 @@ public class C_Terms_DOE extends OpMode {
             twb.setKvelo(Kvelo.getCurrent());
             twb.setKpitchRate(KpitchRate.getCurrent());
 
-            twb.setAutoPitchTarget(pitchFuzz);
+            twb.setAutoPitchTarget(0.0);
 
             // during the experiment, after the jiggle, record min/max
             if(moveTimer.seconds() > 0.2) {

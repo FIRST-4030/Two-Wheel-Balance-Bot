@@ -1,6 +1,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.Rev9AxisImuOrientationOnRobot;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -12,6 +13,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 /**
@@ -23,11 +26,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  * The Position and velocity is of the center of the wheels.
  */
 public class TwoWheelBalanceController {
-    public enum Robot {Blue,C};
+    public enum Robot {Blue,C,CPin};
+    private Robot thisRobot;
     private final DcMotor leftDrive;
     private final DcMotor rightDrive;
 
     private final TWBOdometry odometry; // two wheel odometry object with running average
+    int leftTicks = 0;
+    int rightTicks = 0;
+    private int leftZeroTicks = 0; // pinpoint does not reset.  have to store zero at start
+    private int rightZeroTicks = 0; // pinpoint does not reset.  have to store zero at start
 
     // These are the state terms for a two wheel balancing robot
     private double Kpitch = -0.0001; // volts/degree
@@ -55,15 +63,20 @@ public class TwoWheelBalanceController {
     private double armPitchTarget = 0;
     private double pitchTarget = 0;
 
-    private double pitch = 0; // degrees, read from imu
+    private double pitch = 0;
+    private double oldPitch = 0;
     private double pitchRATE = 0;
 
     private double yawTarget = 0.0;
     private double yaw = 0;
     private double priorYaw = 0;
+    double rawYaw = 0;
+
     private double rawPriorYaw = 0;
 
     private final IMU imu;
+
+    GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Computer
 
     private YawPitchRollAngles orientation;   // part of FIRST navigation classes
 
@@ -73,13 +86,18 @@ public class TwoWheelBalanceController {
     private final ElapsedTime runtime = new ElapsedTime(); // Timer used to check loop times
     // The variables below are to try to get a consistent delta time for the controller.
     // Not sure how well this works. Don't know how to make it better without different runtime env.
-    private final RunningAverageArray deltaTimeRA = new RunningAverageArray(11,false);
+    // Array size was 11 for IMU.  Trying 5 with gobilda pinpoint
+    private final RunningAverageArray deltaTimeRA = new RunningAverageArray(5,false);
     private double currentTime;
     private double lastTime;
     private double deltaTime = 0.04; // initialize, replaced by a running average
 
     /**
      * TWB Constructor.  Call once in initialization.
+     * Sign convention: L -^- R : + dist + velocity as shown.
+     * Motors and Encoders both have sign!
+     * Pitch: + pitch + pitch_rate is "nose" up.
+     * Yaw:  L - +CCW - R  + yaw + yaw_rate is CCW from above.
      * @param hardwareMap hardware map
      * @param wheelBase Distance between Wheels in mm
      * @param wheelDia Wheel Diameter in mm
@@ -89,11 +107,13 @@ public class TwoWheelBalanceController {
      * @param kd Yaw PID Kd term
      * @param NVelo Size of running average array for robot velocity
      * @param NDist Size of running average array for robot odometry distance
-     * @param thisRobot enum of which robot
+     * @param thisBot enum of which robot
       */
     public TwoWheelBalanceController(HardwareMap hardwareMap, double wheelBase, double wheelDia,
                                      double ticksPerMM, double kp, double ki, double kd,
-                                     int NVelo, int NDist, Robot thisRobot) {
+                                     int NVelo, int NDist, Robot thisBot) {
+
+        this.thisRobot = thisBot;
 
         deltaTimeRA.add(0.04); // add to running average to smooth the start??
 
@@ -102,23 +122,33 @@ public class TwoWheelBalanceController {
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
 
         if (thisRobot == Robot.Blue) {
-            // initialize IMU before odometry, because odometry needs pitch
+            // initialize Control Hub based IMU
             imu = hardwareMap.get(IMU.class, "imu");
             imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
                     RevHubOrientationOnRobot.LogoFacingDirection.UP,
                     RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)));
         } else if (thisRobot == Robot.C) {
-            //imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
-            // RevHubOrientationOnRobot.LogoFacingDirection.UP,
-            //        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)));
-
+            // initialize Rev sensor based IMU
             imu = hardwareMap.get(IMU.class, "imuREV");
             imu.initialize(new IMU.Parameters(new Rev9AxisImuOrientationOnRobot(
                     Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP,
                     Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.FORWARD)));
-        } else {
-            // initialize IMU before odometry, because odometry needs pitch
-            imu = hardwareMap.get(IMU.class, "imuZZZ");
+        } else if (thisRobot == Robot.CPin) {
+            // initialize Control Hub based IMU.  Not used, but we need to set the pointer
+            imu = hardwareMap.get(IMU.class, "imu");
+
+            // initialize the Pinpoint, that has an IMU
+            odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
+            odo.setOffsets(-10.0, -10.0, DistanceUnit.MM); // not used, but needed?
+            odo.setEncoderResolution(27.16244, DistanceUnit.MM);
+            odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
+                    GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            odo.resetPosAndIMU(); // recalibrates IMU
+            leftZeroTicks = odo.getEncoderX();
+            rightZeroTicks = odo.getEncoderY();
+        } else    {
+                // initialize IMU before odometry, because odometry needs pitch
+                imu = hardwareMap.get(IMU.class, "imuZZZ");
         }
 
         odometry = new TWBOdometry(wheelBase, wheelDia, getPitch(),NVelo,NDist); // create odometry object
@@ -159,11 +189,15 @@ public class TwoWheelBalanceController {
     public void start() {
         resetMotors();
 
-        imu.resetYaw(); // set the yaw value to zero
-
-        orientation = imu.getRobotYawPitchRollAngles();
-        pitch = orientation.getPitch(AngleUnit.DEGREES);
-
+        if (thisRobot == Robot.CPin) {
+            updatePinpoint();
+            leftZeroTicks = odo.getEncoderX();
+            rightZeroTicks = odo.getEncoderY();
+        } else {
+            imu.resetYaw(); // REV IMU
+            orientation = imu.getRobotYawPitchRollAngles();
+            pitch = orientation.getPitch(AngleUnit.DEGREES);
+        }
         // reset the timer
         runtime.reset();
         currentTime = runtime.seconds();
@@ -189,26 +223,30 @@ public class TwoWheelBalanceController {
     public void loop(OpMode theOpmode) {
         setLoopTime(); // this updates the deltaTime value
 
-        int leftTicks;
-        int rightTicks;
-        if (revEncoders) {
-            leftTicks = -leftDrive.getCurrentPosition();
-            rightTicks = -rightDrive.getCurrentPosition();
-        } else {
-            leftTicks = leftDrive.getCurrentPosition();
-            rightTicks = rightDrive.getCurrentPosition();
+        if (thisRobot == Robot.CPin) { // Pinpoint IMU and Encoders
+            updatePinpoint();
+
+        } else { // REV IMU and Encoders
+            if (revEncoders) {
+                leftTicks = -leftDrive.getCurrentPosition();
+                rightTicks = -rightDrive.getCurrentPosition();
+            } else {
+                leftTicks = leftDrive.getCurrentPosition();
+                rightTicks = rightDrive.getCurrentPosition();
+            }
+            // get pitch and pitch rate values from the IMU
+            orientation = imu.getRobotYawPitchRollAngles();
+            pitch = orientation.getPitch(AngleUnit.DEGREES);
+
+            AngularVelocity angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
+            pitchRATE = angularVelocity.xRotationRate;
+
+            rawYaw = orientation.getYaw(AngleUnit.RADIANS);
         }
-
-        // get pitch and pitch rate values from the IMU
-        orientation = imu.getRobotYawPitchRollAngles();
-        pitch = orientation.getPitch(AngleUnit.DEGREES);
-
-        AngularVelocity angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
-        pitchRATE = angularVelocity.xRotationRate;
 
         // get position and linear velocity values from wheel encoders (odometry)
         odometry.update(leftTicks / TICKSPERMM,
-                rightTicks / TICKSPERMM, pitch, deltaTime); // was deltaTime
+                rightTicks / TICKSPERMM, pitch, deltaTime);
         sOdom = odometry.getS();  // position
         linearVelocity = odometry.getAvgLinearVelocity();
 
@@ -216,29 +254,28 @@ public class TwoWheelBalanceController {
         double posError = sOdom - posTarget;
         positionVolts = Kvelo * linearVelocity + Kpos * posError;
 
-        //double veloError = linearVelocity - veloTarget; // don't use concept of veloTarget!
-        //positionVolts = Kvelo * veloError + Kpos * posError;
-
         pitchTarget = armPitchTarget + autoPitchTarget;
         double pitchError = pitch - pitchTarget;
 
         pitchVolts = Kpitch * pitchError + KpitchRate * pitchRATE;
         double totalPowerVolts = pitchVolts + positionVolts;
 
-        // The following controls the turn (yaw) of the robot
-        // IMU getYaw always returns value from -2*PI to 2*PI
-        // TO BE REPLACED BY Angles.nospinangle
-        // The code below makes "yaw" a continuous value
-        double rawYaw = orientation.getYaw(AngleUnit.RADIANS);
-        double deltaYaw = rawYaw - rawPriorYaw;
-        rawPriorYaw = rawYaw;
-        if (deltaYaw > Math.PI) deltaYaw -= 2 * Math.PI;
-        else if (deltaYaw < -Math.PI) deltaYaw += 2 * Math.PI;
-        yaw = priorYaw + deltaYaw;
-        priorYaw = yaw;
+        if (thisRobot != Robot.CPin) {
+            // The following controls the turn (yaw) of the robot
+            // IMU getYaw always returns value from -2*PI to 2*PI
+            // TO BE REPLACED BY Angles.nospinangle
+            // The code below makes "yaw" a continuous value
+            double deltaYaw = rawYaw - rawPriorYaw;
+            rawPriorYaw = rawYaw;
+            if (deltaYaw > Math.PI) deltaYaw -= 2 * Math.PI;
+            else if (deltaYaw < -Math.PI) deltaYaw += 2 * Math.PI;
+            yaw = priorYaw + deltaYaw;
+            priorYaw = yaw;
+        }
 
         yawPID.setSetpoint(yawTarget);
         double yawPower = yawPID.compute(yaw);
+        //double yawPower = 0.0;
 
          // Set the motor power for both wheels
         leftDrive.setPower(totalPowerVolts  - yawPower);
@@ -272,6 +309,18 @@ public class TwoWheelBalanceController {
         deltaTimeRA.add(dT);
         deltaTime = deltaTimeRA.getAverage();
     }
+    public void updatePinpoint() {
+        odo.update(); // Update the pinpoint values for the following calls
+        leftTicks = odo.getEncoderX()-leftZeroTicks;
+        rightTicks = odo.getEncoderY()-rightZeroTicks;
+
+        pitch = odo.getPitch(AngleUnit.DEGREES);
+        pitchRATE = (pitch- oldPitch)/deltaTime;
+        oldPitch = pitch;
+
+        yaw = -odo.getHeading(UnnormalizedAngleUnit.RADIANS);
+        //rawYaw = odo.getHeading(AngleUnit.RADIANS);
+    }
     public double getDeltaTime() {return deltaTime;}
     public double getPitchTarget() {return pitchTarget;}
     public void setPosTarget(double pos) {posTarget = pos;}
@@ -304,4 +353,6 @@ public class TwoWheelBalanceController {
         return pitch;
     }
     public double getPitchRate() {return pitchRATE;}
+    public  int getLeftTicks() {return leftTicks;}
+    public  int getRightTicks() {return rightTicks;}
 }

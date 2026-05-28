@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.Locale;
+
 /**
  * Black Wheeled Two Wheel Balancing Robot Class
  *  All of the robot unique constant are (should be) defined here
@@ -45,19 +47,20 @@ public class C_TWB {
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
         TWBController = new TwoWheelBalanceController(hardwareMap, 246.0, 96.0,
                 27.16244, 0.45, 0.0, 0.05, 5, 1,
-                TwoWheelBalanceController.Robot.C);
+                TwoWheelBalanceController.Robot.CPin);
 
         // These are the state terms for a two wheel balancing robot
         // Tune these using the DOE (Design of Experiments) opmode.
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(0.0044,0.0024,-0.085,-0.0066);
-        //                                  0.0044       0.0026     -0.080       -0.007 <= MAX pr
+        TWBController.setBalanceTerms(-0.008,-0.0022,-0.23,-0.00435);
+        //                                  0.0044       0.0024     -0.085   -0.0066 -0.007 <= MAX pr
 
-        TWBController.setArmPitchTarget(-1.5); // measure with C_DriveSimple opmode or DOE
+        TWBController.setArmPitchTarget(0.9); // measure with C_Pitch_Fuzz opmode
 
-        TWBController.setDriveMotors(true,false,true);
+        //TWBController.setDriveMotors(true,false,true); // REV IMU
+        TWBController.setDriveMotors(false,true,false); // Pinpoint
 
         leftGearServo = hardwareMap.get(Servo.class, "leftGearServo");
         rightGearServo = hardwareMap.get(Servo.class, "rightGearServo");
@@ -72,6 +75,9 @@ public class C_TWB {
         moveGearDown();
     }
 
+    public void init_loop() {
+        TWBController.updatePinpoint();
+    }
     /**
      * Start is called once after play is pushed and calls the TWB controller start
      */
@@ -83,7 +89,6 @@ public class C_TWB {
      * TWB Main Loop method.  Call repeatedly while running. Contains balance control logic.
      * Teleoperated inputs are removed from this method, so it can be called in autonomous.
       */
-    @SuppressLint("DefaultLocale")
     public void loop(OpMode theOpmode) {
 
         if (!GearDown) {
@@ -158,7 +163,7 @@ public class C_TWB {
     public void turn_teleop(double deltaAngle) {
         // Robot Turning:
         // The right joystick turns the robot by adjusting the yaw PID turn setpoint
-        TWBController.setYawTarget(TWBController.getYawTarget() - deltaAngle );
+        TWBController.setYawTarget(TWBController.getYawTarget() + deltaAngle );
     }
 
     /**
@@ -180,17 +185,17 @@ public class C_TWB {
         //TWBController.setVeloTarget( -forward*(mmPerLoop/0.020));
         //TWBController.setVeloTarget( -forward*(mmPerLoop/TWBController.getDeltaTime()));
     }
-    @SuppressLint("DefaultLocale")
     public void writeTelemetry(OpMode om) {
-        om.telemetry.addLine(String.format("s Position Target %.1f ,Current %.1f (mm)",
+        om.telemetry.addLine(String.format(Locale.US, "s Position Target %.1f ,Current %.1f (mm)",
                 TWBController.getPosTarget(),TWBController.getPosition()));
-        om.telemetry.addLine(String.format("s Velocity Target %.1f ,Current %.1f (mm/sec)",
+        om.telemetry.addLine(String.format(Locale.US, "s Velocity Target %.1f ,Current %.1f (mm/sec)",
                 TWBController.getVeloTarget(),TWBController.getVelocity()));
-        om.telemetry.addLine(String.format("Pitch Target %.1f ,Current %.1f (degrees)",
+        om.telemetry.addLine(String.format(Locale.US, "Pitch Target %.1f ,Current %.1f (DEGREES)",
                 TWBController.getPitchTarget(),TWBController.getPitch()));
-        om.telemetry.addLine(String.format("Yaw Target %.1f ,Current %.1f (degrees)",
+        om.telemetry.addLine(String.format(Locale.US, "Yaw Target %.1f ,Current %.1f (RADIANS)",
                 TWBController.getYawTarget(),TWBController.getYaw()));
-        //om.telemetry.addData("Current Voltage   ",TWBController.getCurrentVoltage());
+        om.telemetry.addData("Left Ticks   ",TWBController.getLeftTicks());
+        om.telemetry.addData("Right Ticks   ",TWBController.getRightTicks());
     }
 
     public double getKpos() {return TWBController.getKpos();}
