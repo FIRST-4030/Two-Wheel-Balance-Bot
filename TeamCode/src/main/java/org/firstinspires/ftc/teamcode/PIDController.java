@@ -53,6 +53,7 @@ public class PIDController {
 
         double error = setpoint - processVariable;
         integral += error * timeChange; // accumulate the error over time
+
         double derivative = (error - previousError) / timeChange;
 
         double output = kp * error + ki * integral + kd * derivative;
@@ -63,30 +64,25 @@ public class PIDController {
         return output;
     }
 
-    /* Compute method with double parameters (feedback=processVariable and rate=derivative) 
-       IMU usually returns angular rates, which can be used rather than deriving the derivative */
+    /**
+     * Compute method with double parameters
+     * IMU usually returns angular rates, which can be used rather than deriving the derivative
+     * @param processVariable the term for the pit
+     * @param derivative the derivative of the term
+     */
     public double compute(double processVariable, double derivative) {
-        double output;
-        long now = System.currentTimeMillis();
-        double timeChange = (now - lastTime) / 1000.0;  // Convert milliseconds to seconds
+        //long now = System.currentTimeMillis();
+        //double timeChange = (now - lastTime) / 1000.0;  // Convert milliseconds to seconds
         
         double error = setpoint - processVariable;
-        
-        // windup control - don't add to error if large
-        if ((error < 35.0) && (error >-35.0)) { // normal range
-            integral += error * timeChange; // accumulate the error over time
-            output = kp * error + ki * integral - kd * derivative;
-        } else if (error >= 10) {
-            output = 1.0;
-        } else {
-            output = -1.0;
-        }
+        //integral += error * timeChange; // accumulate the error over time
+        integral = 0;
+
+        double output = kp * error + ki * integral - kd * derivative;
 
         previousError = error; 
-        lastTime = now;
+        //lastTime = now;
         
-        Range.clip(output,-1.0,1.0);  // this is the max range for setPower
-
         return output;
     }
 

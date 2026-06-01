@@ -6,7 +6,6 @@ import com.qualcomm.hardware.rev.Rev9AxisImuOrientationOnRobot;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -56,9 +55,13 @@ public class TwoWheelBalanceController {
 
     private double posTarget = 0.0;
     private double sOdom = 0.0; // Current robot position from odometry
+    private double sXPinpoint = 0.0; // position from pinpoint
+    private double sYPinpoint = 0.0; // position from pinpoint
 
     private double veloTarget = 0.0;
     private double linearVelocity = 0.0;
+    private double leftVelo;
+    private double rightVelo;
     private double autoPitchTarget = 0; // used to set pitch from an auto routine
     private double armPitchTarget = 0;
     private double pitchTarget = 0;
@@ -71,8 +74,8 @@ public class TwoWheelBalanceController {
     private double yaw = 0;
     private double priorYaw = 0;
     double rawYaw = 0;
-
     private double rawPriorYaw = 0;
+    double yawRate = 0;
 
     private final IMU imu;
 
@@ -87,7 +90,7 @@ public class TwoWheelBalanceController {
     // The variables below are to try to get a consistent delta time for the controller.
     // Not sure how well this works. Don't know how to make it better without different runtime env.
     // Array size was 11 for IMU.  Trying 5 with gobilda pinpoint
-    private final RunningAverageArray deltaTimeRA = new RunningAverageArray(5,false);
+    private final RunningAverageArray deltaTimeRA = new RunningAverageArray(8,false);
     private double currentTime;
     private double lastTime;
     private double deltaTime = 0.04; // initialize, replaced by a running average
@@ -139,7 +142,7 @@ public class TwoWheelBalanceController {
 
             // initialize the Pinpoint, that has an IMU
             odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
-            odo.setOffsets(-10.0, -10.0, DistanceUnit.MM); // not used, but needed?
+            odo.setOffsets(0.0, 0.0, DistanceUnit.MM);
             odo.setEncoderResolution(27.16244, DistanceUnit.MM);
             odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
                     GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -274,7 +277,8 @@ public class TwoWheelBalanceController {
         }
 
         yawPID.setSetpoint(yawTarget);
-        double yawPower = yawPID.compute(yaw);
+        //double yawPower = yawPID.compute(yaw);
+        double yawPower = yawPID.compute(yaw,yawRate);
         //double yawPower = 0.0;
 
          // Set the motor power for both wheels
@@ -313,13 +317,17 @@ public class TwoWheelBalanceController {
         odo.update(); // Update the pinpoint values for the following calls
         leftTicks = odo.getEncoderX()-leftZeroTicks;
         rightTicks = odo.getEncoderY()-rightZeroTicks;
+        //sXPinpoint = odo.getPosX(DistanceUnit.MM);
+        //sYPinpoint = odo.getPosY(DistanceUnit.MM);
+        //leftVelo = odo.getVelX(DistanceUnit.MM);
+        //rightVelo = odo.getVelY(DistanceUnit.MM);
 
         pitch = odo.getPitch(AngleUnit.DEGREES);
         pitchRATE = (pitch- oldPitch)/deltaTime;
         oldPitch = pitch;
 
         yaw = -odo.getHeading(UnnormalizedAngleUnit.RADIANS);
-        //rawYaw = odo.getHeading(AngleUnit.RADIANS);
+        yawRate = odo.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS);
     }
     public double getDeltaTime() {return deltaTime;}
     public double getPitchTarget() {return pitchTarget;}
@@ -355,4 +363,9 @@ public class TwoWheelBalanceController {
     public double getPitchRate() {return pitchRATE;}
     public  int getLeftTicks() {return leftTicks;}
     public  int getRightTicks() {return rightTicks;}
+    public double getLeftVelo() {return leftVelo;}
+    public double getRightVelo() {return rightVelo;}
+    public double getPosXPP() {return sXPinpoint;}
+    public double getPosYPP() {return sYPinpoint;}
+
 }

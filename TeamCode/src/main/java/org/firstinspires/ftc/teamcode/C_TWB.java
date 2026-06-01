@@ -1,10 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.annotation.SuppressLint;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -30,7 +27,7 @@ public class C_TWB {
 
     private DatalogTWB CdatalogTWB; // datalog for full recording
     private boolean writeDatalog = false; // default is no log.  call method to write.
-    public double MMPLoop = 8.0;
+    public double MMPLoop = 5.0; // 8 is large for pinpoint
     public double DEGPLoop = 2.0;
 
     private DcMotor flywheel;
@@ -46,7 +43,7 @@ public class C_TWB {
         // TICKSPERMM = (8192)/(96*Math.PI) = 27.16244;
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
         TWBController = new TwoWheelBalanceController(hardwareMap, 246.0, 96.0,
-                27.16244, 0.45, 0.0, 0.05, 5, 1,
+                27.16244, 0.45, 0.0, 0.05, 6, 1,
                 TwoWheelBalanceController.Robot.CPin);
 
         // These are the state terms for a two wheel balancing robot
@@ -54,7 +51,7 @@ public class C_TWB {
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(-0.008,-0.0022,-0.23,-0.00435);
+        TWBController.setBalanceTerms(-0.008,-0.0022,-0.2333,-0.0043);
         //                                  0.0044       0.0024     -0.085   -0.0066 -0.007 <= MAX pr
 
         TWBController.setArmPitchTarget(0.9); // measure with C_Pitch_Fuzz opmode
@@ -104,7 +101,7 @@ public class C_TWB {
         shoot_loop(); // check if we are shooting
 
         if (writeDatalog) {
-            CdatalogTWB.logPosPitch(TWBController.getPosition(), TWBController.getPosTarget(),
+            CdatalogTWB.logPosPitch(TWBController.getPosition() ,TWBController.getPosTarget(),
                     TWBController.getVelocity(), TWBController.getVeloTarget(),TWBController.getPitch(),
                     TWBController.getPitchTarget(), TWBController.getPitchRate(),
                     TWBController.getYaw(),TWBController.getYawTarget(),

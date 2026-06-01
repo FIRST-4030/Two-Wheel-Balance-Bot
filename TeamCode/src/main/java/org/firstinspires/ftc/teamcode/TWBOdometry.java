@@ -47,12 +47,13 @@ public class TWBOdometry {
     }
 
     /**
-     * Updates the position and orientation (yaw) of the robot based on new encoder values.
+     * Updates the position, velocity and orientation (yaw) of the center of mass of
+     * the two wheel balancing robot based on new encoder distances.
      *
      * @param leftEncoderDist  distance traveled by the left wheel (mm).
      * @param rightEncoderDist distance traveled by the right wheel (mm).
      * @param pitch   The pitch of the body connected to the wheels (in degrees), zero is up.
-     * @param timeChange   The loop delta time (in seconds).
+     * @param timeChange   The loop delta time (in seconds), used for velocity calculation.
      */
     public void update(double leftEncoderDist, double rightEncoderDist, double pitch, double timeChange) {
         
@@ -63,6 +64,7 @@ public class TWBOdometry {
         double deltaTheta;
 
         // Calculate the delta pitch (degrees) of the chassis, since the last update
+        // TO DO:  REPLACE WHEELCIRCUMFRENCE WITH DISTANCE CM TO FLOOR (PARAMETER)
         // This is subtracted from the travel because it moves the encoders
         double deltaPitch = pitch - lastPitch;
         lastPitch = pitch;

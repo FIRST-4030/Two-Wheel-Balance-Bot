@@ -14,7 +14,33 @@ public class DatalogTWB {
     public void init(String fileName) {
         datalog = new DatalogTWBinside(fileName);
     }
-    public void logPosPitch(double pos, double posTarget, double velocity, double veloTarget,
+    public void logPosPitch(double pos, double posXPP, double posYPP,
+                            double posTarget, double velocity, double veloTarget,
+                            double pitch, double pitchTarget, double pitchRATE,
+                            double yaw,  double yawTarget, double posVolts,
+                            double pitchVolts, double dt,double leftVelo, double rightVelo) {
+        // Data log
+        // Note that the order in which we set datalog fields
+        // does *not* matter! Order is configured inside the Datalog class constructor.
+        datalog.pos.set(pos);
+        datalog.posXPP.set(posXPP);
+        datalog.posYPP.set(posYPP);
+        datalog.posTarget.set(posTarget);
+        datalog.veloTarget.set(veloTarget);
+        datalog.pitch.set(pitch);
+        datalog.pitchTarget.set(pitchTarget);
+        datalog.pitchRATE.set(pitchRATE);
+        datalog.yaw.set(yaw);
+        datalog.yawTarget.set(yawTarget);
+        datalog.linVelo.set(velocity);
+        datalog.positionVolts.set(posVolts); // look for saturation when tuning
+        datalog.pitchVolts.set(pitchVolts);  // look for saturation when tuning
+        datalog.dt.set(dt);
+        datalog.leftVelo.set(leftVelo);
+        datalog.rightVelo.set(rightVelo);
+    }
+    public void logPosPitch(double pos,
+                            double posTarget, double velocity, double veloTarget,
                             double pitch, double pitchTarget, double pitchRATE,
                             double yaw,  double yawTarget, double posVolts,
                             double pitchVolts, double dt) {
@@ -50,12 +76,16 @@ public class DatalogTWB {
         public Datalogger.GenericField pitch = new Datalogger.GenericField("Pitch");
         public Datalogger.GenericField pitchTarget = new Datalogger.GenericField("PitchTarget");
         public Datalogger.GenericField pitchRATE = new Datalogger.GenericField("pitchRATE");
-        public Datalogger.GenericField pos = new Datalogger.GenericField("PosCurrent");
+        public Datalogger.GenericField pos = new Datalogger.GenericField("Pos_MyOdo");
+        public Datalogger.GenericField posXPP = new Datalogger.GenericField("PosX_PP");
+        public Datalogger.GenericField posYPP = new Datalogger.GenericField("PosY_PP");
         public Datalogger.GenericField posTarget = new Datalogger.GenericField("PosTarget");
         public Datalogger.GenericField veloTarget = new Datalogger.GenericField("VeloTarget");
         public Datalogger.GenericField yaw = new Datalogger.GenericField("Yaw");
         public Datalogger.GenericField yawTarget = new Datalogger.GenericField("yawTarget");
         public Datalogger.GenericField linVelo = new Datalogger.GenericField("linearVelo");
+        public Datalogger.GenericField leftVelo = new Datalogger.GenericField("left_X_Velo_pp");
+        public Datalogger.GenericField rightVelo = new Datalogger.GenericField("right_Y_Velo_pp");
         public Datalogger.GenericField positionVolts = new Datalogger.GenericField("positionVolts");
         public Datalogger.GenericField pitchVolts = new Datalogger.GenericField("pitchVolts");
         public Datalogger.GenericField dt = new Datalogger.GenericField("DeltaTime");
@@ -78,11 +108,15 @@ public class DatalogTWB {
                             pitchTarget,
                             pitchRATE,
                             pos,
+                            posXPP,
+                            posYPP,
                             posTarget,
                             veloTarget,
                             yaw,
                             yawTarget,
                             linVelo,
+                            leftVelo,
+                            rightVelo,
                             positionVolts,
                             pitchVolts,
                             dt
