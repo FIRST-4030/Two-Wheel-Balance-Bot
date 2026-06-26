@@ -10,7 +10,7 @@ package org.firstinspires.ftc.teamcode;
 public class TWBOdometry {
     // Robot parameters
     private final double wheelBase; // distance between the wheels
-    private final double wheelCircumference;  // wheel circumference
+    //private final double wheelCircumference;  // wheel circumference
     
     private double lastPitch;
 
@@ -31,13 +31,15 @@ public class TWBOdometry {
 
     /**
      * Constructor,  provide wheel base and wheel dia in mm, initialPitch in degrees
+     * @param wheelBase distance between wheels in mm
+     * @param initialPitch robots initial (or balancing) pitch in degrees
      * @param Nvelo The size of the running average array for linear velocity of bot
      * @param Ndist The size of the running average array for left and right distance
       */
-    public TWBOdometry(double wheelBase, double wheelDia, double initialPitch,
+    public TWBOdometry(double wheelBase, double initialPitch,
                        int Nvelo, int Ndist) {
         this.wheelBase = wheelBase;
-        this.wheelCircumference = wheelDia*Math.PI; // convert diameter to circumference
+        //this.wheelCircumference = wheelDia*Math.PI; // convert diameter to circumference
         this.lastPitch = initialPitch; // robots initial pitch, probably not zero
 
         // initialize the running averages with zeros to smooth out the startup
@@ -52,10 +54,12 @@ public class TWBOdometry {
      *
      * @param leftEncoderDist  distance traveled by the left wheel (mm).
      * @param rightEncoderDist distance traveled by the right wheel (mm).
+     * @param vertCM vertical distance from the wheel center to the robot center of mass, may change while running
      * @param pitch   The pitch of the body connected to the wheels (in degrees), zero is up.
      * @param timeChange   The loop delta time (in seconds), used for velocity calculation.
      */
-    public void update(double leftEncoderDist, double rightEncoderDist, double pitch, double timeChange) {
+    public void update(double leftEncoderDist, double rightEncoderDist, double vertCM,
+                       double pitch, double timeChange) {
         
         double deltaLeft, deltaRight;
         double lastLeftDistance;
@@ -64,11 +68,12 @@ public class TWBOdometry {
         double deltaTheta;
 
         // Calculate the delta pitch (degrees) of the chassis, since the last update
-        // TO DO:  REPLACE WHEELCIRCUMFRENCE WITH DISTANCE CM TO FLOOR (PARAMETER)
-        // This is subtracted from the travel because it moves the encoders
+        // Pitch moves the center of mass horizontally.
+        // This is included in the travel because it moves the encoders
         double deltaPitch = pitch - lastPitch;
         lastPitch = pitch;
-        double pitchEqDist = (deltaPitch/360.0)*wheelCircumference; // Pitch Equivalent Distance
+        //double pitchEqDist = (deltaPitch/360.0)*wheelCircumference; // Pitch Equivalent Distance
+        double pitchEqDist = (deltaPitch/360.0)*vertCM; // Pitch Equivalent Distance
 
         // get the prior running average distance
         lastLeftDistance = leftDistAvg.getAverage();

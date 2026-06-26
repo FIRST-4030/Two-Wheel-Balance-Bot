@@ -85,9 +85,7 @@ public class C_back_n_forth_Auto extends OpMode {
                 if (moveTimer.seconds() <= TIME ) {
                     newTargets = myTWBmoves.lineMove(moveTimer.seconds(),currentPos);
                     twb.setPosTarget(newTargets[0]);
-                } else if (moveTimer.seconds() <= TIME+SETTLE_TIME ) {
-                    // do nothing, let settle
-                } else {
+                } else if (moveTimer.seconds() > TIME+SETTLE_TIME ) {
                     state = State.SHOOT;
                     moveTimer.reset();
                     currentPos = DIST; // for the next state
@@ -108,9 +106,7 @@ public class C_back_n_forth_Auto extends OpMode {
                      myTWBmoves.reverseDir = true;
                      newTargets = myTWBmoves.lineMove(moveTimer.seconds(), currentPos);
                      twb.setPosTarget(newTargets[0]);
-                 } else if (moveTimer.seconds() <= TIME+SETTLE_TIME ) {
-                     // do nothing, let settle
-                 } else {
+                 } else if (moveTimer.seconds() > TIME+SETTLE_TIME ) {
                      state = State.GEARDOWN;
                      moveTimer.reset();
                  }

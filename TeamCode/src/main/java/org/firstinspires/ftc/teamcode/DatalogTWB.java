@@ -58,6 +58,7 @@ public class DatalogTWB {
         datalog.linVelo.set(velocity);
         datalog.positionVolts.set(posVolts); // look for saturation when tuning
         datalog.pitchVolts.set(pitchVolts);  // look for saturation when tuning
+        datalog.totalVolts.set(posVolts+pitchVolts);
         datalog.dt.set(dt);
     }
     public void writeLineTWB() {
@@ -88,6 +89,7 @@ public class DatalogTWB {
         public Datalogger.GenericField rightVelo = new Datalogger.GenericField("right_Y_Velo_pp");
         public Datalogger.GenericField positionVolts = new Datalogger.GenericField("positionVolts");
         public Datalogger.GenericField pitchVolts = new Datalogger.GenericField("pitchVolts");
+        public Datalogger.GenericField totalVolts = new Datalogger.GenericField("TotalVots");
         public Datalogger.GenericField dt = new Datalogger.GenericField("DeltaTime");
 
         public DatalogTWBinside(String name) {
@@ -119,6 +121,7 @@ public class DatalogTWB {
                             rightVelo,
                             positionVolts,
                             pitchVolts,
+                            totalVolts,
                             dt
                     )
                     .build();

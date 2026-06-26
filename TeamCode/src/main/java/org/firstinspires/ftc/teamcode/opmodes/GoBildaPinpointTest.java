@@ -23,6 +23,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -61,6 +62,7 @@ For support, contact tech@gobilda.com
  */
 
 @TeleOp(name="goBILDA Pinpoint Test", group="Linear OpMode")
+@Disabled
 //@Disabled
 
 public class GoBildaPinpointTest extends LinearOpMode {

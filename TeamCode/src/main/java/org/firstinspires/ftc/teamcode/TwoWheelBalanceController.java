@@ -25,7 +25,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  * The Position and velocity is of the center of the wheels.
  */
 public class TwoWheelBalanceController {
-    public enum Robot {Blue,C,CPin};
+    public enum Robot {Blue,C,CPin}
     private Robot thisRobot;
     private final DcMotor leftDrive;
     private final DcMotor rightDrive;
@@ -55,13 +55,11 @@ public class TwoWheelBalanceController {
 
     private double posTarget = 0.0;
     private double sOdom = 0.0; // Current robot position from odometry
-    private double sXPinpoint = 0.0; // position from pinpoint
-    private double sYPinpoint = 0.0; // position from pinpoint
 
     private double veloTarget = 0.0;
     private double linearVelocity = 0.0;
-    private double leftVelo;
-    private double rightVelo;
+
+    private double vertCM = 10.0;  // vertical distance from the wheel center to the robot center of mass
     private double autoPitchTarget = 0; // used to set pitch from an auto routine
     private double armPitchTarget = 0;
     private double pitchTarget = 0;
@@ -103,7 +101,6 @@ public class TwoWheelBalanceController {
      * Yaw:  L - +CCW - R  + yaw + yaw_rate is CCW from above.
      * @param hardwareMap hardware map
      * @param wheelBase Distance between Wheels in mm
-     * @param wheelDia Wheel Diameter in mm
      * @param ticksPerMM Odometry ticks per mm of wheel travel
      * @param kp Yaw PID Kp term
      * @param ki Yaw PID Ki term
@@ -112,7 +109,7 @@ public class TwoWheelBalanceController {
      * @param NDist Size of running average array for robot odometry distance
      * @param thisBot enum of which robot
       */
-    public TwoWheelBalanceController(HardwareMap hardwareMap, double wheelBase, double wheelDia,
+    public TwoWheelBalanceController(HardwareMap hardwareMap, double wheelBase,
                                      double ticksPerMM, double kp, double ki, double kd,
                                      int NVelo, int NDist, Robot thisBot) {
 
@@ -130,12 +127,14 @@ public class TwoWheelBalanceController {
             imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
                     RevHubOrientationOnRobot.LogoFacingDirection.UP,
                     RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)));
+            vertCM = 92.0; // mm
         } else if (thisRobot == Robot.C) {
             // initialize Rev sensor based IMU
             imu = hardwareMap.get(IMU.class, "imuREV");
             imu.initialize(new IMU.Parameters(new Rev9AxisImuOrientationOnRobot(
                     Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP,
                     Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.FORWARD)));
+            vertCM = 13.0; // mm
         } else if (thisRobot == Robot.CPin) {
             // initialize Control Hub based IMU.  Not used, but we need to set the pointer
             imu = hardwareMap.get(IMU.class, "imu");
@@ -149,12 +148,13 @@ public class TwoWheelBalanceController {
             odo.resetPosAndIMU(); // recalibrates IMU
             leftZeroTicks = odo.getEncoderX();
             rightZeroTicks = odo.getEncoderY();
+            vertCM = 165.0; // mm
         } else    {
-                // initialize IMU before odometry, because odometry needs pitch
-                imu = hardwareMap.get(IMU.class, "imuZZZ");
+            // initialize IMU before odometry, because odometry needs pitch
+            imu = hardwareMap.get(IMU.class, "imuZZZ");
         }
 
-        odometry = new TWBOdometry(wheelBase, wheelDia, getPitch(),NVelo,NDist); // create odometry object
+        odometry = new TWBOdometry(wheelBase, getPitch(),NVelo,NDist); // create odometry object
         TICKSPERMM = ticksPerMM;
 
         yawPID = new PIDController(kp, ki, kd);
@@ -249,7 +249,7 @@ public class TwoWheelBalanceController {
 
         // get position and linear velocity values from wheel encoders (odometry)
         odometry.update(leftTicks / TICKSPERMM,
-                rightTicks / TICKSPERMM, pitch, deltaTime);
+                rightTicks / TICKSPERMM, vertCM, pitch, deltaTime);
         sOdom = odometry.getS();  // position
         linearVelocity = odometry.getAvgLinearVelocity();
 
@@ -317,10 +317,6 @@ public class TwoWheelBalanceController {
         odo.update(); // Update the pinpoint values for the following calls
         leftTicks = odo.getEncoderX()-leftZeroTicks;
         rightTicks = odo.getEncoderY()-rightZeroTicks;
-        //sXPinpoint = odo.getPosX(DistanceUnit.MM);
-        //sYPinpoint = odo.getPosY(DistanceUnit.MM);
-        //leftVelo = odo.getVelX(DistanceUnit.MM);
-        //rightVelo = odo.getVelY(DistanceUnit.MM);
 
         pitch = odo.getPitch(AngleUnit.DEGREES);
         pitchRATE = (pitch- oldPitch)/deltaTime;
@@ -363,9 +359,5 @@ public class TwoWheelBalanceController {
     public double getPitchRate() {return pitchRATE;}
     public  int getLeftTicks() {return leftTicks;}
     public  int getRightTicks() {return rightTicks;}
-    public double getLeftVelo() {return leftVelo;}
-    public double getRightVelo() {return rightVelo;}
-    public double getPosXPP() {return sXPinpoint;}
-    public double getPosYPP() {return sYPinpoint;}
 
 }

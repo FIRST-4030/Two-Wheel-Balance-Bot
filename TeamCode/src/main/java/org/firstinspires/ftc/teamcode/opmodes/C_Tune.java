@@ -71,7 +71,7 @@ public class C_Tune extends OpMode
 
         // Use running average of the joystick to smooth aggressive inputs.
         // The left trigger is a speed booster
-        joystickS.add(gamepad1.left_stick_y * (1 + gamepad1.left_trigger));
+        joystickS.add(gamepad1.left_stick_y * (1 + gamepad1.left_trigger/2.0));
 
         // Translate the robot by setting position, velocity and pitch targets
         twb.translateDrive(joystickS.getAverage(),twb.MMPLoop,twb.DEGPLoop);

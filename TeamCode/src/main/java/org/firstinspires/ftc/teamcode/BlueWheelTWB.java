@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -44,13 +43,9 @@ public class BlueWheelTWB {
         // WHEELDIA = 203.0; // 8 inch wheel diameter (mm)
         // TICKSPERMM = (1120)/(203*Math.PI) = 1.75619; // REV SPUR 40:1, 8in wheels
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
-        TWBController = new TwoWheelBalanceController(hardwareMap, 300.0, 203.0,
+        TWBController = new TwoWheelBalanceController(hardwareMap, 300.0,
                 1.75619, 0.45, 0.0, 0.05, 7, 3,
                 TwoWheelBalanceController.Robot.Blue);
-
-        VoltageSensor battery = hardwareMap.voltageSensor.get("Control Hub");
-        // Get the current voltage, so that balance control is more consistent
-        //TWBController.setCurrentVoltage(battery.getVoltage());
 
         // These are the state terms for a two wheel balancing robot
         // Tune these using the DOE (Design of Experiments) opmode.

@@ -5,8 +5,6 @@ Enhancements from SrAmo (utilize rate if provided, getIntegral, Integral reset)
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.util.Range;
-
 /**
  * PIDController class.  Proportional, Integral, Derivative Controller Class
  */
@@ -22,9 +20,9 @@ public class PIDController {
 
     /**
      * Constructor for PIDController
-     * @param kp
-     * @param ki
-     * @param kd
+     * @param kp proportional gain
+     * @param ki integral gain
+     * @param kd derivative gain
      */
     public PIDController(double kp, double ki, double kd) {
         this.kp = kp;
@@ -40,9 +38,7 @@ public class PIDController {
         this.setpoint = setpoint;
     }
 
-    public double getSetpoint() {
-        return setpoint;
-    }
+    //public double getSetpoint() { return setpoint;  }
 
     /**
      * Compute method for PID controller.  Call repeatedly
@@ -93,14 +89,11 @@ public class PIDController {
     }
 
     // Getters and setters for gains
-    public double getKp() {
-        return kp;
-    }
+    //public double getKp() {   return kp;    }
 
-    public void setKp(double kp) {
-        this.kp = kp;
-    }
+    //public void setKp(double kp) {    this.kp = kp;    }
 
+    /*
     public double getKi() {
         return ki;
     }
@@ -120,4 +113,6 @@ public class PIDController {
     public double getIntegral() {
         return integral;
     }
+    */
+
 }

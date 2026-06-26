@@ -3,15 +3,12 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.annotation.SuppressLint;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.BlueWheelTWB;
 import org.firstinspires.ftc.teamcode.C_TWB;
 import org.firstinspires.ftc.teamcode.Datalogger;
-import org.firstinspires.ftc.teamcode.RunningAverageArray;
 import org.firstinspires.ftc.teamcode.Term;
 
 /**
@@ -59,10 +56,10 @@ public class C_Terms_DOE extends OpMode {
 
         // MODIFY THESE FOR THE EXPERIMENTS. KPOS CHANGES WITH ARM ANGLE
 //        KpitchRate = smallest absolute value before chatter = -0.007
-        Kpos = new Term(-0.010,-0.0080,5,twb.getKpos());
+        Kpos = new Term(-0.011,-0.0090,5,twb.getKpos());
         Kvelo = new Term(-0.0022,-0.0022,1,twb.getKvelo());
-        Kpitch = new Term(-0.240,-0.220,4,twb.getKpitch());
-        KpitchRate = new Term(-0.0044,-0.0043,2,twb.getKpitchRate());
+        Kpitch = new Term(-0.250,-0.210,5,twb.getKpitch());
+        KpitchRate = new Term(-0.0044,-0.0043,1,twb.getKpitchRate());
         NEXPERIMENTS = Kpos.getN() * Kpitch.getN() * Kvelo.getN() * KpitchRate.getN();
 
         twb.init();

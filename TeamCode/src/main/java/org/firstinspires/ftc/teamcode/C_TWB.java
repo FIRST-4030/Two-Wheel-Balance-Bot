@@ -19,10 +19,10 @@ public class C_TWB {
     private final Servo leftGearServo;
     private final Servo rightGearServo;
 
-    private final static double RIGHTDOWN = 0.02; // servo value
-    private final static double RIGHTUP = 0.57;  // servo value
-    private final static double LEFTDOWN = 0.92; // servo value.
-    private final static double LEFTUP = 0.40;  // servo value
+    private final static double RIGHTDOWN = 0.10; // servo value
+    private final static double RIGHTUP = 0.68;  // servo value
+    private final static double LEFTDOWN = 0.92; // servo value.  DETACHED
+    private final static double LEFTUP = 0.40;  // servo value   DETACHED
     private final ElapsedTime gearTimer = new ElapsedTime(); // Timer used with Claw
 
     private DatalogTWB CdatalogTWB; // datalog for full recording
@@ -30,7 +30,7 @@ public class C_TWB {
     public double MMPLoop = 5.0; // 8 is large for pinpoint
     public double DEGPLoop = 2.0;
 
-    private DcMotor flywheel;
+    private final DcMotor flywheel;
     private final ElapsedTime shotTimer = new ElapsedTime(); // Timer used for shooting
     private boolean shooting = false;
     private boolean collecting = false;
@@ -42,7 +42,7 @@ public class C_TWB {
         // WHEELDIA = 96.0; // goBilda Rhino wheels
         // TICKSPERMM = (8192)/(96*Math.PI) = 27.16244;
         // Yaw PID terms: kp 0.45, ki 0.12, kd 0.05
-        TWBController = new TwoWheelBalanceController(hardwareMap, 246.0, 96.0,
+        TWBController = new TwoWheelBalanceController(hardwareMap, 246.0,
                 27.16244, 0.45, 0.0, 0.05, 6, 1,
                 TwoWheelBalanceController.Robot.CPin);
 
@@ -51,10 +51,10 @@ public class C_TWB {
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                            Kpos        Kvelo       Kpitch       KpitchRate
-        TWBController.setBalanceTerms(-0.008,-0.0022,-0.2333,-0.0043);
+        TWBController.setBalanceTerms(-0.01,-0.0022,-0.21,-0.0044);
         //                                  0.0044       0.0024     -0.085   -0.0066 -0.007 <= MAX pr
 
-        TWBController.setArmPitchTarget(0.9); // measure with C_Pitch_Fuzz opmode
+        TWBController.setArmPitchTarget(-0.5); // measure with C_Pitch_Fuzz opmode
 
         //TWBController.setDriveMotors(true,false,true); // REV IMU
         TWBController.setDriveMotors(false,true,false); // Pinpoint
