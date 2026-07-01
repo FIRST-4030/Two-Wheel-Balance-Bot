@@ -35,7 +35,7 @@ public class C_back_n_forth_Auto extends OpMode {
     public void init() {
         twb = new C_TWB(hardwareMap); // Create twb object
 
-        twb.writeDatalog("CLogAutoBnF");
+        twb.writeLog("CLogAutoBnF");
 
         twb.moveGearDown();
     }
@@ -119,7 +119,7 @@ public class C_back_n_forth_Auto extends OpMode {
                 break;
         }
 
-        twb.loop(this);  // MAIN CONTROL SYSTEM
+        twb.loopC(this);  // MAIN CONTROL SYSTEM
 
         telemetry.addData("State",state);
         telemetry.update();

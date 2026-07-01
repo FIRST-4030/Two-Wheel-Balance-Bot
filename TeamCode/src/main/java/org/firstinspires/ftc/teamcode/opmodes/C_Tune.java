@@ -27,9 +27,11 @@ public class C_Tune extends OpMode
     public void init() {
         twb = new C_TWB(hardwareMap); // Create twb object
 
-        twb.writeDatalog("CManualTune");
+        twb.writeLog("CManualTune");
 
         joystickS = new RunningAverageArray(12,false); // initialize size of running average
+
+        //twb.setFixedLoopTIme();
 
         twb.init();
     }
@@ -80,7 +82,7 @@ public class C_Tune extends OpMode
         twb.turn_teleop(gamepad1.left_stick_x * 0.03);
         twb.turn_teleop(gamepad1.right_stick_x * 0.04);
 
-        twb.loop(this);  // call the MAIN CONTROL SYSTEM
+        twb.loopC(this);  // call the MAIN CONTROL SYSTEM
 
         if(gamepad1.backWasPressed()) { // toggle gear state
             if (twb.isGearDown()) twb.moveGearUp();

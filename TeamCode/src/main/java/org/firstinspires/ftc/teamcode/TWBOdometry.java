@@ -2,10 +2,11 @@ package org.firstinspires.ftc.teamcode;
 
 /**
  * Two Wheel Robot Odometry class.
- * Keeps track of a two-wheeled balancing robot's position using wheel encoders.
- * Running Average is used to smooth position and velocity data.
- * Robot pitch may move the encoders but not the change robot position, and
- * pitch may move the robot without changing the encoders.
+ * Keeps track of a two-wheeled balancing robot's position and velocity using wheel encoders.
+ * Robot's Position is defined as the center between wheels and vertically at center of mass.
+ * Running Average is used to smooth position and velocity data (configurable).
+ * Robot pitch moves the encoders and changes position and velocity.
+ * Robot Yaw (theta) is also calculate (currently not used anywhere).
  */
 public class TWBOdometry {
     // Robot parameters
@@ -72,7 +73,6 @@ public class TWBOdometry {
         // This is included in the travel because it moves the encoders
         double deltaPitch = pitch - lastPitch;
         lastPitch = pitch;
-        //double pitchEqDist = (deltaPitch/360.0)*wheelCircumference; // Pitch Equivalent Distance
         double pitchEqDist = (deltaPitch/360.0)*vertCM; // Pitch Equivalent Distance
 
         // get the prior running average distance

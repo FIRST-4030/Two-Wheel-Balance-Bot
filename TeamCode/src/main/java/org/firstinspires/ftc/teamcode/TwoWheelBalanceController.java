@@ -39,7 +39,6 @@ public class TwoWheelBalanceController {
     // These are the state terms for a two wheel balancing robot
     private double Kpitch = -0.0001; // volts/degree
     private double KpitchRate = -0.0001; // volts/degrees/sec
-    // Have had difficulty tuning KpitchRate manually.  Use DOE opmode
 
     // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
     // and positive when the CM is above (unstable)
@@ -84,7 +83,8 @@ public class TwoWheelBalanceController {
     private double positionVolts = 0.0;
     private double pitchVolts = 0.0;
 
-    private final ElapsedTime runtime = new ElapsedTime(); // Timer used to check loop times
+    private final ElapsedTime runtime = new ElapsedTime(); // Timer used to get loop times
+
     // The variables below are to try to get a consistent delta time for the controller.
     // Not sure how well this works. Don't know how to make it better without different runtime env.
     // Array size was 11 for IMU.  Trying 5 with gobilda pinpoint
@@ -92,6 +92,7 @@ public class TwoWheelBalanceController {
     private double currentTime;
     private double lastTime;
     private double deltaTime = 0.04; // initialize, replaced by a running average
+    private boolean fixedLoopTime = false;
 
     /**
      * TWB Constructor.  Call once in initialization.
@@ -134,7 +135,7 @@ public class TwoWheelBalanceController {
             imu.initialize(new IMU.Parameters(new Rev9AxisImuOrientationOnRobot(
                     Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP,
                     Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.FORWARD)));
-            vertCM = 13.0; // mm
+            vertCM = 130.0; // mm
         } else if (thisRobot == Robot.CPin) {
             // initialize Control Hub based IMU.  Not used, but we need to set the pointer
             imu = hardwareMap.get(IMU.class, "imu");
@@ -148,7 +149,7 @@ public class TwoWheelBalanceController {
             odo.resetPosAndIMU(); // recalibrates IMU
             leftZeroTicks = odo.getEncoderX();
             rightZeroTicks = odo.getEncoderY();
-            vertCM = 165.0; // mm
+            vertCM = 130.0; // mm
         } else    {
             // initialize IMU before odometry, because odometry needs pitch
             imu = hardwareMap.get(IMU.class, "imuZZZ");
@@ -224,7 +225,8 @@ public class TwoWheelBalanceController {
      * Teleoperated inputs are removed from this method, so it can be called in autonomous.
       */
     public void loop(OpMode theOpmode) {
-        setLoopTime(); // this updates the deltaTime value
+        if (fixedLoopTime) deltaTime = 0.015;
+        else setLoopTime(); // this updates the deltaTime value
 
         if (thisRobot == Robot.CPin) { // Pinpoint IMU and Encoders
             updatePinpoint();
@@ -328,9 +330,8 @@ public class TwoWheelBalanceController {
     public double getDeltaTime() {return deltaTime;}
     public double getPitchTarget() {return pitchTarget;}
     public void setPosTarget(double pos) {posTarget = pos;}
-    public double getPosition() {return sOdom;}
+    public double getPos() {return sOdom;}
     public double getPosTarget() {return posTarget;}
-
     public void setVeloTarget(double velo) {veloTarget = velo;}
     public double getVeloTarget() {return veloTarget;}
     public double getVelocity() {return linearVelocity;}
@@ -359,5 +360,7 @@ public class TwoWheelBalanceController {
     public double getPitchRate() {return pitchRATE;}
     public  int getLeftTicks() {return leftTicks;}
     public  int getRightTicks() {return rightTicks;}
-
+    public double getVerticalCM() {return vertCM;}
+    public void setVerticalCM(double verticalCM) {vertCM = verticalCM;}
+    public void setFixedLoopTIme() {fixedLoopTime = true;}
 }

@@ -130,7 +130,7 @@ public class BlueWheelTWB {
         theArm.updateArm(TWBController.getDeltaTime()); // This will make the arm move
 
         if (writeDatalog) {
-            datalogTWB.logPosPitch(TWBController.getPosition(), TWBController.getPosTarget(),
+            datalogTWB.logPosPitch(TWBController.getPos(), TWBController.getPosTarget(),
                     TWBController.getVelocity(), TWBController.getVeloTarget(),TWBController.getPitch(),
                     TWBController.getPitchTarget(), TWBController.getPitchRate(),
                     TWBController.getYaw(),TWBController.getYawTarget(),
@@ -220,7 +220,7 @@ public class BlueWheelTWB {
     @SuppressLint("DefaultLocale")
     public void writeTelemetry(OpMode om) {
         om.telemetry.addLine(String.format("s Position Target %.1f ,Current %.1f (mm)",
-                TWBController.getPosTarget(),TWBController.getPosition()));
+                TWBController.getPosTarget(),TWBController.getPos()));
         om.telemetry.addLine(String.format("s Velocity Target %.1f ,Current %.1f (mm/sec)",
                 TWBController.getVeloTarget(),TWBController.getVelocity()));
         om.telemetry.addLine(String.format("Pitch Target %.1f ,Current %.1f (degrees)",
@@ -243,7 +243,7 @@ public class BlueWheelTWB {
     public void setAutoPitchTarget(double target) {TWBController.setAutoPitchTarget(target);}
     public void setPosTarget(double pos) {TWBController.setPosTarget(pos);}
     public void setVeloTarget(double velo) {TWBController.setVeloTarget(velo);}
-    public double getPos() {return TWBController.getPosition();}
+    public double getPos() {return TWBController.getPos();}
     public double getVelocity() {return TWBController.getVelocity();}
     public double getPitch() {return TWBController.getPitch();}
     public double getPitchTarget() {return TWBController.getPitchTarget();}
