@@ -65,8 +65,8 @@ public class TwoWheelBalanceController {
     private double oldPitch = 0;
     private double pitchRATE = 0;
 
-    private double yawTarget = 0.0;
-    private double yaw = 0;
+    private double yawTarget = 0.0;  // radians
+    private double yaw = 0;  // radians
     private double priorYaw = 0;
     private double rawYaw = 0;
     private double rawPriorYaw = 0;
@@ -124,9 +124,7 @@ public class TwoWheelBalanceController {
 
         yawPID.setSetpoint(0.0);    // initial yaw (yawTarget) is zero.
 
-        maxAllowedAccel = 1500; // based on testing (mm/sec^2)
-
-        joystickS = new RunningAverageArray(30,true); // initialize size of running average
+        joystickS = new RunningAverageArray(40,true); // initialize size of running average
     }
     public void initializePinpoint(HardwareMap hardwareMap) {
         // initialize the Pinpoint, that has an IMU
@@ -398,5 +396,9 @@ public class TwoWheelBalanceController {
     public void setMaxAllowedVelocity(double maxVelo) {
         maxAllowedVelocity = maxVelo;}
     public double getMaxAllowedVelocity() {return maxAllowedVelocity;}
+    public void setMaxAllowedAccel(double maxAccel) {
+        maxAllowedAccel = maxAccel;
+    }
     public double getMaxAllowedAccel() {return maxAllowedAccel;}
+    public double getY() {return odometry.getY();}
 }

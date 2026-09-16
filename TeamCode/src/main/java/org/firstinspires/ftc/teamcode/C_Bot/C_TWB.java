@@ -15,6 +15,7 @@ import java.util.Locale;
  * Black Wheeled Two Wheel Balancing Robot Class
  *  Extends TWB class
  * Robot Details: goBilda 9.6 cm wheels, goBilda 26.9:1 motors, 1:1 belt drive
+ * Using PinPoint
  */
 public class C_TWB extends TwoWheelBalanceController {
     private boolean GearDown = true;
@@ -25,7 +26,7 @@ public class C_TWB extends TwoWheelBalanceController {
     private final static double RIGHTUP = 0.68;  // servo value
     //private final static double LEFTDOWN = 0.92; // servo value.  DETACHED
     //private final static double LEFTUP = 0.40;  // servo value   DETACHED
-    public final static double GEARDOWNTIME = 0.6; // seconds to put the gear down
+    public final static double GEARDOWNTIME = 0.55; // seconds to put the gear down
     private final ElapsedTime gearTimer = new ElapsedTime(); // Timer used with Claw
 
     private final DcMotor flywheel;
@@ -52,13 +53,15 @@ public class C_TWB extends TwoWheelBalanceController {
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
         //                      Kpos        Kvelo       Kpitch       KpitchRate
-        setBalanceTerms(-0.013,-0.0025,-0.20,-0.0045);
+        setBalanceTerms(-0.012,-0.0021,-0.20,-0.0044);
         //                    -0.01       -0.0022       -0.21          -0.0044
 
         setTARGET_LOOP_MS(20.0); // This has been tested and seems good
-        setMaxAllowedVelocity(500.0);
 
-        setZeroPitchTarget(1.5); // zero angle, degrees, measure with PitchTune opmode
+        setMaxAllowedVelocity(700.0);
+        setMaxAllowedAccel(1000.0);
+
+        setZeroPitchTarget(0.0); // zero angle, degrees, measure with PitchTune opmode
 
         setVerticalCM(130.0); // mm
 
@@ -79,7 +82,10 @@ public class C_TWB extends TwoWheelBalanceController {
     }
 
     public void init_loop() {
+
         updateTicksPinpoint();
+        updatePitchYawPinpoint();
+
     }
     /**
      * Start is called once after play is pushed and calls the TWB controller start

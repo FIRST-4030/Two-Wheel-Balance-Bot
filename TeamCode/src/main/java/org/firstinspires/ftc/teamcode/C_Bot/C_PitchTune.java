@@ -45,9 +45,12 @@ public class C_PitchTune extends OpMode {
         twb.init_loop();
         telemetry.addLine("Tune Zero-Pitch-Target so average position is zero");
         telemetry.addLine(" ---");
-        telemetry.addLine("Tune Vertical-Center-of-Mass so Std Dev is near zero");
-        telemetry.addLine(" ---");
+        //telemetry.addLine("Tune Vertical-Center-of-Mass so Std Dev is near zero");
+        //telemetry.addLine(" ---");
         telemetry.addLine("WAIT THREE SECONDS BETWEEN CHANGES FOR NUMBERS TO STABILIZE");
+
+        twb.writeTelemetry(this);
+
         telemetry.update();
     }
 
@@ -66,20 +69,20 @@ public class C_PitchTune extends OpMode {
      */
     @Override
     public void loop() {
+
         twb.startCycleTImer();
+
         if (gamepad1.dpadUpWasPressed()) pitchFuzz += 0.1;
         else if (gamepad1.dpadDownWasPressed()) pitchFuzz -= 0.1;
         twb.setZeroPitchTarget(pitchFuzz);
 
-        if (gamepad1.dpadLeftWasPressed()) twb.setVerticalCM(twb.getVerticalCM()+1.0);
-        else if (gamepad1.dpadRightWasPressed()) twb.setVerticalCM(twb.getVerticalCM()-1.0);
+//        if (gamepad1.dpadLeftWasPressed()) twb.setVerticalCM(twb.getVerticalCM()+1.0);
+//        else if (gamepad1.dpadRightWasPressed()) twb.setVerticalCM(twb.getVerticalCM()-1.0);
 
         if(gamepad1.backWasPressed()) { // toggle gear state
             if (twb.isGearDown()) twb.moveGearUp();
             else  twb.moveGearDown();
         }
-
-        twb.loopC(this);  // call balance control system
 
         robotPos.add(twb.getPos()); // add to running average, for telemetry only
 
@@ -89,12 +92,15 @@ public class C_PitchTune extends OpMode {
         telemetry.addData("AVERAGE Position (mm)","  %.0f", robotPos.getAverage());
         telemetry.addData("DPAD UP+ DOWN- Zero-Pitch-Target Adjust (deg)"," %.1f", pitchFuzz);
         telemetry.addLine(" ---");
-        telemetry.addData("Position Standard Deviation (mm)","  %.1f", robotPos.getStandardDeviation());
-        telemetry.addData("Robot Vertical Center of Mass (mm)"," %.1f", twb.getVerticalCM());
-        telemetry.addLine("DPAD LEFT+ RIGHT-  VertCM Adjust");
-        telemetry.addLine(" ---");
+//        telemetry.addData("Position Standard Deviation (mm)","  %.1f", robotPos.getStandardDeviation());
+//        telemetry.addData("Robot Vertical Center of Mass (mm)"," %.1f", twb.getVerticalCM());
+//        telemetry.addLine("DPAD LEFT+ RIGHT-  VertCM Adjust");
+//        telemetry.addLine(" ---");
 
         telemetry.update();
+
+        twb.loopC(this);  // call balance control system
+
     }
 
 }

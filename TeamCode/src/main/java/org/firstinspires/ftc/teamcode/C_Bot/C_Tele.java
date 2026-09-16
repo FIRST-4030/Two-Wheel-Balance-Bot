@@ -67,7 +67,6 @@ public class C_Tele extends OpMode
         twb.turn_teleop(-gamepad1.left_stick_x * 0.03);
         twb.turn_teleop(-gamepad1.right_stick_x * 0.04);
 
-        twb.loopC(this);  // call the MAIN CONTROL SYSTEM
 
         if(gamepad1.backWasPressed()) { // toggle gear state
             if (twb.isGearDown()) twb.moveGearUp();
@@ -76,5 +75,8 @@ public class C_Tele extends OpMode
 
         //twb.writeTelemetry(this);
         telemetry.update();
+
+        twb.loopC(this);  // call the MAIN CONTROL SYSTEM
+
     }
 }

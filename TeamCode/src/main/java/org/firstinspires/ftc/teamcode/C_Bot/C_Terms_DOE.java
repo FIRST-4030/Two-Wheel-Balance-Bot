@@ -187,7 +187,6 @@ public class C_Terms_DOE extends OpMode {
             Kpitch.resetSum();
         }
 
-        twb.loopC(this);  // CALL MAIN TWB CONTROL SYSTEM
 
         telemetry.addLine(String.format("EXPERIMENT %d  OF TOTAL %d",count, NEXPERIMENTS));
         telemetry.addLine(" --- ");
@@ -205,6 +204,8 @@ public class C_Terms_DOE extends OpMode {
             twb.moveGearDown();
             if(moveTimer.seconds() > GEARDOWNTIME) requestOpModeStop(); // Stop the opmode
         }
+
+        twb.loopC(this);  // CALL MAIN TWB CONTROL SYSTEM
     }
     /**
      * Datalog class encapsulates all the fields that will go into the datalog.

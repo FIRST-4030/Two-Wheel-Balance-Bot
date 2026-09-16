@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.MoveProfiles;
 @Autonomous(name="C Auto 1")
 public class C_Auto1 extends OpMode {
     private C_TWB twb;
-    private double DIST = 501; // mm
+    private double DIST = 700; // mm
     private double TIME = 2.0; // sec
     private MoveProfiles myTWBmoves;
     final private ElapsedTime moveTimer = new ElapsedTime();
@@ -46,27 +46,30 @@ public class C_Auto1 extends OpMode {
         telemetry.addLine("Set a Distance for robot to move back and forth ");
         telemetry.addLine(" --- ");
 
-        if (gamepad1.dpadUpWasPressed()) DIST += 100.0;
-        else if (gamepad1.dpadDownWasPressed() && DIST > 0) DIST -= 100.0;
+        double maxVelo = twb.getMaxAllowedVelocity();
+        double maxAccel = twb.getMaxAllowedAccel();
 
-        // TIME TO ACCELERATE TO MAX VELOCITY AND DECELERATE
-        //TIME = 2.0 * (twb.getMaxAllowedVelocity()/twb.getMaxAllowedAccel());
+        double accelDist = Math.PI*(maxVelo*maxVelo)/(2*maxAccel);  // Dist based on Max Accel
 
-        //double distMaxV = twb.getMaxAllowedAccel() * TIME*TIME;
-        
-        double maxVelo = getMaxVelocity(DIST, TIME); // max move velocity
+        if (gamepad1.dpadUpWasPressed() && (DIST < accelDist)) DIST += 100.0;
+        else if (gamepad1.dpadDownWasPressed() && (DIST > 0)) DIST -= 100.0;
 
-        //if (maxVelo > twb.getMaxLinearVelocity()) {
-            //DIST = twb.getMaxLinearVelocity() / TIME; // adjust the distance based on the time
-        //}
+        TIME = 2.0 * Math.sqrt((Math.PI*DIST/2)/maxAccel);
+
+        if (gamepad1.dpadLeftWasPressed() && (maxAccel > 10)) twb.setMaxAllowedAccel(maxAccel-100.0);
+        else if (gamepad1.dpadRightWasPressed() && (maxAccel < 3000.0)) twb.setMaxAllowedAccel(maxAccel + 100.0);
+
+        maxAccel = twb.getMaxAllowedAccel();  // update again
 
         telemetry.addLine("DPAD UP - DOWN Adjusts the distance");
-        telemetry.addData("Travel Distance (mm)"," %.1f", DIST);
+        telemetry.addData("Travel Distance (mm)"," %.0f", DIST);
+        telemetry.addData("Distance Limit based on Accel"," %.0f", accelDist);
         telemetry.addLine(" --- ");
         telemetry.addData("Travel Time (seconds) =", TIME);
         telemetry.addLine(" --- ");
-        telemetry.addData("Max MOVE Velocity (mm/sec)"," %.1f", maxVelo);
-        telemetry.addData("Max ROBOT Velocity (mm/sec)"," %.1f", twb.getMaxLinearVelocity());
+        telemetry.addData("Max allowed Velocity (mm/sec)"," %.1f", maxVelo);
+        telemetry.addData("Max Acceleration (mm/sec)"," %.1f", maxAccel);
+        telemetry.addLine("DPAD LEFT - RIGHT Adjusts the Acceleration");
         telemetry.update();
     }
 
@@ -134,19 +137,10 @@ public class C_Auto1 extends OpMode {
                 break;
         }
 
-        twb.loopC(this);  // MAIN CONTROL SYSTEM
-
         telemetry.addData("State",state);
         telemetry.update();
-    }
-    /**
-     * Returns the maximum velocity for a robot starting at rest, following a sine profile,
-     * and stopping at the end.
-     * @param distance = distance traveled
-     * @param time = time to travel the distance
-     * @return = the maximum velocity reached during the travel
-     */
-    public double getMaxVelocity(double distance, double time) {
-        return 2.0*distance / time;
+
+        twb.loopC(this);  // MAIN CONTROL SYSTEM
+
     }
 }

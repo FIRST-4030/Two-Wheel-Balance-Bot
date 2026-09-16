@@ -58,6 +58,7 @@ public class C_Tune extends OpMode
     public void loop() {
 
         twb.startCycleTImer();
+
         if (gamepad1.rightBumperWasPressed()) twb.collectFlywheel();
         //if (gamepad1.y) twb.shootFlywheel();
         if (gamepad1.leftBumperWasReleased()) twb.flywheelOff();
@@ -73,8 +74,6 @@ public class C_Tune extends OpMode
         twb.turn_teleop(-gamepad1.left_stick_x * 0.03);
         twb.turn_teleop(-gamepad1.right_stick_x * 0.04);
 
-        twb.loopC(this);  // call the MAIN CONTROL SYSTEM
-
         if(gamepad1.backWasPressed()) { // toggle gear state
             if (twb.isGearDown()) twb.moveGearUp();
             else  twb.moveGearDown();
@@ -82,6 +81,9 @@ public class C_Tune extends OpMode
 
         //twb.writeTelemetry(this);
         //telemetry.update();
+
+        twb.loopC(this);  // call the MAIN CONTROL SYSTEM
+
     }
 
     /**

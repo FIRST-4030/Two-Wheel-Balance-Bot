@@ -36,6 +36,7 @@ public class C_BackNForth_DOE extends OpMode {
     // Modify the Terms in init()
     private Term term1;  // generic names.  specific tests terms defined below
     private Term term2;
+    private Term term3;
 
     // Internal variables
     private int count = 1; // for counting the DOE
@@ -57,12 +58,14 @@ public class C_BackNForth_DOE extends OpMode {
         twb.writeDatalog("C_DOE_bnf_Full"); // This log will be bigger
 
         // MODIFY THESE FOR THE EXPERIMENTS.
-        term1 = new Term(0.012,0.016,5,twb.getKpos());  // Kpos
+        term1 = new Term(0.010,0.014,3,twb.getKpos());  // Kpos
 
         //term2 = new Term(0.0024,0.0025,2,twb.getKvelo()); // Kvelo
         term2 = new Term(0.20,0.22,3,twb.getKpitch()); // Kpitch
 
-        NEXPERIMENTS = term1.getN() * term2.getN();
+        term3 = new Term(0.0044,0.0048,3,twb.getKpitchRate());
+
+        NEXPERIMENTS = term1.getN() * term2.getN() * term3.getN();
 
         twb.init();
     }
@@ -103,11 +106,13 @@ public class C_BackNForth_DOE extends OpMode {
     @SuppressLint("DefaultLocale")
     public void loop() {
         twb.startCycleTImer();
+
         if (moveTimer.seconds() < 0.03) {
             // set the new DOE K terms
             twb.setKpos(-term1.getCurrent());
             //twb.setKvelo(-term2.getCurrent());
             twb.setKpitch(-term2.getCurrent());
+            twb.setKpitchRate(-term3.getCurrent());
 
             if (forward) {
                 virtualJoystick = -1.0;
@@ -143,6 +148,7 @@ public class C_BackNForth_DOE extends OpMode {
             datalogEXP.count.set(count);
             datalogEXP.term1.set(term1.getCurrent());
             datalogEXP.term2.set(term2.getCurrent());
+            datalogEXP.term3.set(term3.getCurrent());
 
             datalogEXP.PosError.set(term1.getSum());
 
@@ -156,6 +162,9 @@ public class C_BackNForth_DOE extends OpMode {
             if(count % term1.getN() == 0) {
                 term2.next();
             }
+            if((count % (term1.getN()*term2.getN())) == 0) {
+                term3.next();
+            }
 
             moveTimer.reset();
             forward = !forward;
@@ -167,20 +176,24 @@ public class C_BackNForth_DOE extends OpMode {
             term1.resetSum();
             term2.resetSum();
         }
+        // correct robot Y position by updating the yaw target
+        double yawCorrection = Math.atan2(500.0,twb.getY());
+        if (forward) twb.setYawTarget(-yawCorrection);
+        else twb.setYawTarget(yawCorrection);
+
         // Translate the robot
         twb.translateDrive(virtualJoystick);
-
-        twb.loopC(this);  // CALL MAIN TWB CONTROL SYSTEM
 
         telemetry.addLine(String.format("EXPERIMENT %d  OF TOTAL %d",count, NEXPERIMENTS));
         telemetry.addLine(" --- ");
 
-        telemetry.addData("term1","%.5f", term1.getCurrent());
-        //telemetry.addData("UNUSED","%.7f", UNUSED1.getCurrent());
+        telemetry.addData("term1 (Kpos)","%.5f", term1.getCurrent());
         telemetry.addLine(" --- ");
 
-        telemetry.addData("term2","%.5f", term2.getCurrent());
+        telemetry.addData("term2 (Kpitch)","%.5f", term2.getCurrent());
         //telemetry.addData("KpitchRate","%.7f", UNUSED2.getCurrent());
+        telemetry.addLine(" --- ");
+        telemetry.addData("term3 (KpitchRate)","%.5f", term3.getCurrent());
 
         telemetry.update();
 
@@ -188,6 +201,8 @@ public class C_BackNForth_DOE extends OpMode {
             twb.moveGearDown();
             if(moveTimer.seconds() > GEARDOWNTIME) requestOpModeStop(); // Stop the opmode
         }
+        twb.loopC(this);  // CALL MAIN TWB CONTROL SYSTEM
+
     }
     /**
      * Datalog class encapsulates all the fields that will go into the datalog.
@@ -199,8 +214,9 @@ public class C_BackNForth_DOE extends OpMode {
         // These are all of the fields that we want in the datalog.
         // Note that order here is NOT important. The order is important in the setFields() call below
         public Datalogger.GenericField count = new Datalogger.GenericField("count");
-        public Datalogger.GenericField term1 = new Datalogger.GenericField("term1");
-        public Datalogger.GenericField term2 = new Datalogger.GenericField("term2");
+        public Datalogger.GenericField term1 = new Datalogger.GenericField("Kpos");
+        public Datalogger.GenericField term2 = new Datalogger.GenericField("Kpitch");
+        public Datalogger.GenericField term3 = new Datalogger.GenericField("KPrate");
 
         //public Datalogger.GenericField minPos = new Datalogger.GenericField("minPos");
         //public Datalogger.GenericField maxPos = new Datalogger.GenericField("maxPos");
@@ -233,6 +249,7 @@ public class C_BackNForth_DOE extends OpMode {
                             count,
                             term1,
                             term2,
+                            term3,
                             //minPos,
                             //maxPos,
                             //ampPos,
