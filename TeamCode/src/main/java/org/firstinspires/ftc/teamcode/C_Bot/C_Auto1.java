@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.C_Bot;
 import static org.firstinspires.ftc.teamcode.C_Bot.C_TWB.GEARDOWNTIME;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -15,6 +16,7 @@ import org.firstinspires.ftc.teamcode.MoveProfiles;
  * Used for developing motion profiles.
  */
 @Autonomous(name="C Auto 1")
+@Disabled
 public class C_Auto1 extends OpMode {
     private C_TWB twb;
     private double DIST = 700; // mm

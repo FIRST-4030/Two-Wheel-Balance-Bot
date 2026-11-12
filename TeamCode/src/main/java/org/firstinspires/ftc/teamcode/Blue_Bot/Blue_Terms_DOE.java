@@ -20,7 +20,6 @@ import org.firstinspires.ftc.teamcode.Term;
  * expectation that the lowest mix/max are the most stable terms.
  */
 @TeleOp(name="Blue Bot Terms Design of Experiments")
-@Disabled
 public class Blue_Terms_DOE extends OpMode {
     // Declare OpMode members.
     private BlueWheelTWB twb;

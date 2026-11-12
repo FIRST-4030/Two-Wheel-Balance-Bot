@@ -11,7 +11,6 @@ import org.firstinspires.ftc.teamcode.RunningAverageArray;
  * Do this before running the DOE to tune
  */
 @TeleOp(name="Blue TWB TUNE")
-@Disabled
 public class Blue_Tune extends OpMode
 {
     // Declare OpMode members.

@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.teamcode.C_Bot.C_TWB.GEARDOWNTIME;
 
 import android.annotation.SuppressLint;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -22,7 +23,7 @@ import java.util.Locale;
  * expectation that the lowest mix/max are the most stable terms.
  */
 @TeleOp(name="C Bot Terms Design of Experiments")
-//@Disabled
+@Disabled
 public class C_Terms_DOE extends OpMode {
     // Declare OpMode members.
     private C_TWB twb;

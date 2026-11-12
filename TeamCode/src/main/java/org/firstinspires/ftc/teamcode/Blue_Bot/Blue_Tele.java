@@ -11,7 +11,6 @@ import org.firstinspires.ftc.teamcode.RunningAverageArray;
  * in regular (robot oriented) gamepad mode.
  */
 @TeleOp(name="Blue TWB Tele")
-@Disabled
 public class Blue_Tele extends OpMode
 {
     // Declare OpMode members.

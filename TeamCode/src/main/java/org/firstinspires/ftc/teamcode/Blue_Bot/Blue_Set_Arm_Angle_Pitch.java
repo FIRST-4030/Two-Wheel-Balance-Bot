@@ -14,7 +14,6 @@ import org.firstinspires.ftc.teamcode.RunningAverageArray;
  *  Adjust the pitch and look for when the robots position is zero.
  */
 @TeleOp(name="Blue Set Arm Angle Pitch")
-@Disabled
 public class Blue_Set_Arm_Angle_Pitch extends OpMode {
     // Declare OpMode members.
     private BlueWheelTWB twb;

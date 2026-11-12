@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.C_Bot;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -10,7 +11,7 @@ import org.firstinspires.ftc.teamcode.RunningAverageArray;
  * Do this before running the DOE to tune
  */
 @TeleOp(name="C TWB TUNE")
-//@Disabled
+@Disabled
 public class C_Tune extends OpMode
 {
     // Declare OpMode members.

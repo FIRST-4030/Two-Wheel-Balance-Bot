@@ -63,7 +63,6 @@ For support, contact tech@gobilda.com
 
 @TeleOp(name="goBILDA Pinpoint Test", group="Linear OpMode")
 @Disabled
-//@Disabled
 
 public class GoBildaPinpointTest extends LinearOpMode {
 

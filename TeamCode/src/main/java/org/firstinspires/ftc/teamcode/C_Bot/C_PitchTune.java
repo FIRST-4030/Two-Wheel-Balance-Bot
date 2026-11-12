@@ -1,6 +1,7 @@
 
 package org.firstinspires.ftc.teamcode.C_Bot;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -13,7 +14,7 @@ import java.util.Locale;
  *  Use it to find the pitch angle when the robot is at a zero position target.
  */
 @TeleOp(name="C Pitch Zero Tuner")
-//@Disabled
+@Disabled
 public class C_PitchTune extends OpMode {
     // Declare OpMode members.
     private C_TWB twb;

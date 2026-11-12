@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.C_Bot;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -9,7 +10,7 @@ import org.firstinspires.ftc.teamcode.RunningAverageArray;
  * Iterative Tele OpMode for a two wheel robot
  */
 @TeleOp(name="C TELEOP")
-//@Disabled
+@Disabled
 public class C_Tele extends OpMode
 {
     // Declare OpMode members.
