@@ -55,13 +55,16 @@ public class BlueWheelTWB extends TwoWheelBalanceController{
         // Tune these using the DOE (Design of Experiments) opmode.
         // Both Kpos and Kvelo are negative when the center of mass is below the wheel axles
         // and positive when the CM is above (unstable). Sign does not change for Kpitch & KpitchRate
-        //                            Kpos        Kvelo       Kpitch       KpitchRate
-        //TWBController.setBalanceTerms(0.020,0.018,-0.58,-0.028);
-        //                                  0.016       0.015       -0.58           -0.025
-        setBalanceTerms(0.001785,0.00125,-0.04845,-0.002125);
+        //                    Kpos        Kvelo       Kpitch       KpitchRate
+
+        //setBalanceTerms(0.001785,0.00125,-0.04845,-0.002125);
+        setBalanceTerms(0.0014,0.00122,-0.051,-0.003);
+
 
         setTARGET_LOOP_MS(20.0); // need to test this for a good value
-        setMaxAllowedVelocity(500.0);
+
+        setMaxAllowedVelocity(1000.0);  // triggers shut off
+        setMaxAllowedAccel(1000.0);
 
         setDriveMotors(false, true, false);
 

@@ -66,6 +66,9 @@ public class Blue_Tele_Field_Centric extends OpMode
         double forward = -gamepad1.left_stick_y;
         double right = -gamepad1.left_stick_x;
         double speed1 = Math.sqrt(forward*forward + right*right);
+
+        twb.startCycleTImer();
+
         speed.add(speed1);
 
         // The java.lang.Math.atan2() method returns the angle (theta) in radians between

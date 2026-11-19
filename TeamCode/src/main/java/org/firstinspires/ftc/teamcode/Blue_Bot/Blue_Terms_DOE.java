@@ -129,6 +129,8 @@ public class Blue_Terms_DOE extends OpMode {
     @Override
     @SuppressLint("DefaultLocale")
     public void loop() {
+        twb.startCycleTImer();
+
         // give robot a jiggle at the beginning of each period to get a wave
         // while using the original K terms so that the jiggle is consistent
         if(moveTimer.seconds() < 0.1) {

@@ -92,6 +92,9 @@ public class TwoWheelBalanceController {
 
     private final RunningAverageArray joystickS; // to smooth aggressive joystick inputs
 
+    // TODO: create setter,  for C TWB was 28 degrees
+    private final double pitchLimitABS = 90.0;  // Absolute pitch limit of robot in degrees
+
     /**
      * TWB Constructor.  Call once in initialization.
      * Sign convention: L -^- R : + dist + velocity as shown.
@@ -246,7 +249,7 @@ public class TwoWheelBalanceController {
         rightDrive.setPower(totalPowerVolts  + yawPower);
 
         // kill the robot if it pitches over too far or runs fast when not asked to
-        if ((Math.abs(pitch) > 28.0)  || (Math.abs(linearVelocity) > 1.3*maxLinearVelocity)) {
+        if ((Math.abs(pitch) > pitchLimitABS)  || (Math.abs(linearVelocity) > 1.3*maxLinearVelocity)) {
             theOpmode.requestOpModeStop(); // Stop the opmode
         }
 
@@ -264,6 +267,8 @@ public class TwoWheelBalanceController {
             Thread.yield();
         }
         deltaTime = cycleTimer.seconds(); // save last loop time for other processes
+
+        // TODO: CALL startcycletimer at beginning of each loop
         //cycleTimer.reset();
 
     }

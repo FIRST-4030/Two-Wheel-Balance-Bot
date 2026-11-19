@@ -82,6 +82,7 @@ public class Blue_Set_Arm_Angle_Pitch extends OpMode {
     @Override
     @SuppressLint("DefaultLocale")
     public void loop() {
+        twb.startCycleTImer();
 
         twb.loopBlue(this);  // CALL MAIN TWB CONTROL SYSTEM
 

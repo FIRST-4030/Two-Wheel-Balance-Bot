@@ -25,7 +25,7 @@ public class Blue_Tele extends OpMode
     public void init() {
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
-        //twb.writeDatalog("BlueTele");
+        twb.writeDatalog("BlueTele");
 
         joystickS = new RunningAverageArray(12,false); // initialize size of running average
         /*
@@ -66,6 +66,8 @@ public class Blue_Tele extends OpMode
      */
     @Override
     public void loop() {
+
+        twb.startCycleTImer();
 
         // Use running average of the joystick to smooth aggressive inputs.
         // The left trigger is a speed booster
