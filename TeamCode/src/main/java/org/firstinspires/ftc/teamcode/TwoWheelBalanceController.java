@@ -92,8 +92,11 @@ public class TwoWheelBalanceController {
 
     private final RunningAverageArray joystickS; // to smooth aggressive joystick inputs
 
-    // TODO: create setter,  for C TWB was 28 degrees
-    private final double pitchLimitABS = 90.0;  // Absolute pitch limit of robot in degrees
+    public void setPitchLimitABS(double pitchLimitABS) {
+        this.pitchLimitABS = pitchLimitABS;
+    }
+
+    private double pitchLimitABS = 90.0;  // Absolute pitch limit of robot (deg) above shuts down
 
     /**
      * TWB Constructor.  Call once in initialization.

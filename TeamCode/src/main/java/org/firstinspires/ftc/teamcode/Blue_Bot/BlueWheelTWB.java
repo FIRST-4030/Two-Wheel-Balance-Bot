@@ -39,7 +39,7 @@ public class BlueWheelTWB extends TwoWheelBalanceController{
       */
     public BlueWheelTWB(HardwareMap hardwareMap) {
         super(hardwareMap, 300.0,
-                1.75619, 0.45, 0.0, 0.05, 7, 3);
+                1.75619, 0.45, 0.0, 0.05, 7, 1);
         // The distance between the blue wheels is 300 mm
         // REVSPUR40PPR = 1120; REV Core Hex Motor Pulses per Revolution at output shaft
         // WHEELDIA = 203.0;  8 inch wheel diameter (mm)
@@ -58,17 +58,19 @@ public class BlueWheelTWB extends TwoWheelBalanceController{
         //                    Kpos        Kvelo       Kpitch       KpitchRate
 
         //setBalanceTerms(0.001785,0.00125,-0.04845,-0.002125);
-        setBalanceTerms(0.0014,0.00122,-0.051,-0.003);
+        setBalanceTerms(0.003,0.001,-0.051,-0.003);
 
 
-        setTARGET_LOOP_MS(20.0); // need to test this for a good value
+        setTARGET_LOOP_MS(21.0); // need to test this for a good value
 
-        setMaxAllowedVelocity(1000.0);  // triggers shut off
-        setMaxAllowedAccel(1000.0);
+        setMaxAllowedVelocity(400.0);  // used for speed control
+        setMaxAllowedAccel(5000.0);
 
         setDriveMotors(false, true, false);
 
         setZeroPitchTarget(-0.5); // zero angle, degrees, measure with PitchTune opmode
+
+        setPitchLimitABS(90.0);  // Angle beyond which to shut down the opmode
 
         setVerticalCM(92.0);  // mm
 

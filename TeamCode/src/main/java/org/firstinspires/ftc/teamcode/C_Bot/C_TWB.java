@@ -63,6 +63,8 @@ public class C_TWB extends TwoWheelBalanceController {
 
         setZeroPitchTarget(0.0); // zero angle, degrees, measure with PitchTune opmode
 
+        setPitchLimitABS(28.0);  // Angle beyond which to shut down the opmode
+
         setVerticalCM(130.0); // mm
 
         //TWBController.setDriveMotors(true,false,true); // REV IMU

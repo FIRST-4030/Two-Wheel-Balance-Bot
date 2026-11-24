@@ -16,8 +16,6 @@ public class Blue_Tele extends OpMode
     // Declare OpMode members.
     private BlueWheelTWB twb;
 
-    private RunningAverageArray joystickS; // to smooth aggressive joystick inputs
-
     /**
      * run ONCE when the driver hits INIT
      */
@@ -27,16 +25,6 @@ public class Blue_Tele extends OpMode
 
         twb.writeDatalog("BlueTele");
 
-        joystickS = new RunningAverageArray(12,false); // initialize size of running average
-        /*
-        The telemetry.setMsTransmissionInterval() method in the FIRST Tech Challenge SDK controls
-        how frequently telemetry data is sent from the Robot Controller to the Driver Station
-        250 (milliseconds) is the default value and a good general-purpose interval.
-        100 to 50 (milliseconds) are useful for debugging or operations requiring faster updates.
-        A lower interval provides a more real-time view of data on the Driver Station but
-        increases communication bandwidth usage,
-         */
-        telemetry.setMsTransmissionInterval(250);
     }
 
     /**
@@ -69,16 +57,11 @@ public class Blue_Tele extends OpMode
 
         twb.startCycleTImer();
 
-        // Use running average of the joystick to smooth aggressive inputs.
-        // The left trigger is a speed booster
-        joystickS.add(gamepad1.left_stick_y * (1 + gamepad1.left_trigger));
-
         // Translate the robot
-        twb.translateDrive(joystickS.getAverage());
+        twb.translateDrive(gamepad1.left_stick_y);
 
-        // Either joystick can turn the robot.  Different speeds. Sets yaw target
-        twb.turn_teleop(gamepad1.left_stick_x * 0.03);
-        twb.turn_teleop(gamepad1.right_stick_x * 0.04);
+        // turn the robot.
+        twb.turn_teleop(gamepad1.left_stick_x * 0.04);
 
         twb.arm_teleop(gamepad1.right_stick_y);
 

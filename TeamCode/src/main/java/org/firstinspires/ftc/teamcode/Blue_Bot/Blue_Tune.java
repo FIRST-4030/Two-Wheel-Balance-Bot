@@ -16,9 +16,6 @@ public class Blue_Tune extends OpMode
     // Declare OpMode members.
     private BlueWheelTWB twb;
 
-    private RunningAverageArray joystickS; // to smooth aggressive joystick inputs
-
-
     /**
      * run ONCE when the driver hits INIT
      */
@@ -27,8 +24,6 @@ public class Blue_Tune extends OpMode
         twb = new BlueWheelTWB(hardwareMap); // Create twb object
 
         twb.writeDatalog("BlueManualTune"); // needs to be part of constructor or something
-
-        joystickS = new RunningAverageArray(12,false); // initialize size of running average
     }
 
     /**
@@ -64,16 +59,11 @@ public class Blue_Tune extends OpMode
 
         //tuneDriveTerms();
 
-        // Use running average of the joystick to smooth aggressive inputs.
-        // The left trigger is a speed booster
-        joystickS.add(gamepad1.left_stick_y * (1 + gamepad1.left_trigger));
+        // Translate the robot
+        twb.translateDrive(gamepad1.left_stick_y);
 
-        // Translate the robot by setting position, velocity and pitch targets
-        twb.translateDrive(joystickS.getAverage());
-
-        // Either joystick can turn the robot.  Different speeds. Sets yaw target
-        twb.turn_teleop(gamepad1.left_stick_x * 0.03);
-        twb.turn_teleop(gamepad1.right_stick_x * 0.04);
+        // turn the robot
+        twb.turn_teleop(gamepad1.left_stick_x * 0.04);
 
         twb.arm_teleop(gamepad1.right_stick_y);
 

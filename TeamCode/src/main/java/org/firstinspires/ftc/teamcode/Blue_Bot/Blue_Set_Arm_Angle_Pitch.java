@@ -35,6 +35,7 @@ public class Blue_Set_Arm_Angle_Pitch extends OpMode {
 
         twb.setArmAngle(ARMANGLE); // gets the latest state of the robot before running
 
+        // TODO: redo how this opmode starts
         twb.start();
     }
 
